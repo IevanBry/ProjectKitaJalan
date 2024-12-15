@@ -1,0 +1,93 @@
+<LinearLayout
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:fontFamily="@font/poppins_semibold"
+        android:id="@+id/textView4"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:text="House with a great view"
+        android:textColor="@color/black"
+        android:textSize="24sp" />
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_height="26dp"
+            android:layout_width="26dp"
+            android:src="@drawable/marker" />
+
+        <TextView
+            android:id="@+id/locationText"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:text="Location"
+            android:textColor="@color/black"
+            android:textSize="17sp" />
+
+        <ImageView
+            android:layout_height="26dp"
+            android:layout_width="26dp"
+            android:src="@drawable/star" />
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_width="wrap_content"
+            android:text="5.0"
+            android:textColor="@color/black" />
+
+    </LinearLayout>
+
+    <TextView
+        android:fontFamily="@font/poppins_bold"
+        android:id="@+id/textView13"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:text="Description"
+        android:textColor="@color/black"
+        android:textSize="20sp" />
+
+    <TextView
+        android:fontFamily="@font/poppins"
+        android:id="@+id/descriptionText"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:fontFamily="@font/poppins_semibold"
+        android:id="@+id/priceText"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="wrap_content"
+        android:text="Rp. 500.000"
+        android:textColor="@color/black"
+        android:textSize="30sp" />
+
+    <Button
+        android:backgroundTint="@color/purple"
+        android:id="@+id/bookBtn"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_width="match_parent"
+        android:text="Book Now"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+</LinearLayout>
