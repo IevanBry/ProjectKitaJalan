@@ -20,6 +20,10 @@ class DestinasiAdapter(
         notifyDataSetChanged()
     }
 
+    fun getAllData(): List<DestinasiModel> {
+        return items
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DestinasiViewHolder {
         val binding = ItemDestinasiBinding.inflate(
             LayoutInflater.from(parent.context), parent, false

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.network.RetrofitInstance
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.FragmentSearchBinding
@@ -29,6 +30,8 @@ class SearchFragment : Fragment() {
         }
     }
 
+    private var allDestinasiList: List<DestinasiModel> = emptyList()
+
     private lateinit var destinasiAdapter: DestinasiAdapter
 
     val filterOptions = listOf(
@@ -46,6 +49,17 @@ class SearchFragment : Fragment() {
         setupDestinasiRecyclerView()
         setupFilterChips()
         observeDestinasiData()
+
+        binding.searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let { searchDestinasi(it) }
+                return true
+            }
+        })
 
         return binding.root
     }
@@ -78,20 +92,33 @@ class SearchFragment : Fragment() {
             adapter = destinasiAdapter
         }
     }
+    private fun searchDestinasi(query: String) {
+        if (query.isEmpty()) {
+            destinasiAdapter.updateData(allDestinasiList)
+        } else {
+            val filteredList = allDestinasiList.filter { destinasi ->
+                destinasi.namaDestinasi.contains(query, ignoreCase = true)
+            }
+            destinasiAdapter.updateData(filteredList)
+        }
+    }
 
     private fun observeDestinasiData() {
         destinasiViewModel.getDestinasi(requireContext())
         destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Success -> {
-                    val destinasiItems = resource.data!!.items
-                    destinasiAdapter.updateData(destinasiItems)
+                    allDestinasiList = resource.data!!.items
+                    destinasiAdapter.updateData(allDestinasiList)
                 }
                 is Resource.Loading -> {
+                    // Handle loading state
                 }
                 is Resource.Error -> {
+                    // Handle error state
                 }
                 is Resource.Empty -> {
+                    // Handle empty state
                 }
             }
         }
