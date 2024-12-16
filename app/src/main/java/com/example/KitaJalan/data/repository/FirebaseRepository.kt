@@ -16,9 +16,4 @@ class FirebaseRepository(private val authService: FirebaseAuthService) {
         }
         return null
     }
-
-    suspend fun register(email: String, password: String): Boolean {
-        return authService.register(email, password)
-    }
-
 }

@@ -1,4 +1,4 @@
-package com.example.KitaJalan.ui.viewmodel
+package com.example.KitaJalan.ui.viewModel
 
 import android.content.Context
 import androidx.lifecycle.LiveData

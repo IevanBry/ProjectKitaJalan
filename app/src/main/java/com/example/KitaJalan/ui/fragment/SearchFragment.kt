@@ -1,10 +1,15 @@
 package com.example.KitaJalan.ui.fragment
 
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.KitaJalan.data.model.DestinasiModel
@@ -12,7 +17,7 @@ import com.example.KitaJalan.data.network.RetrofitInstance
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.FragmentSearchBinding
 import com.example.KitaJalan.ui.adapter.DestinasiAdapter
-import com.example.KitaJalan.ui.viewmodel.DestinasiViewModel
+import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
 import com.google.android.material.chip.Chip
@@ -49,6 +54,24 @@ class SearchFragment : Fragment() {
         setupDestinasiRecyclerView()
         setupFilterChips()
         observeDestinasiData()
+        setupSearchView()
+
+        return binding.root
+    }
+
+    private fun setupSearchView() {
+        val searchView = binding.searchView
+
+        val searchPlate = searchView.findViewById<LinearLayout>(androidx.appcompat.R.id.search_plate)
+        searchPlate?.setBackgroundColor(Color.TRANSPARENT)
+
+        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        searchIcon.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN)
+
+        val searchEditText = binding.searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        searchEditText.setTextColor(Color.BLACK)
+        searchEditText.background = null
+        searchEditText.setHintTextColor(Color.BLACK)
 
         binding.searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -60,8 +83,6 @@ class SearchFragment : Fragment() {
                 return true
             }
         })
-
-        return binding.root
     }
     private fun setupFilterChips() {
         val chipGroup: ChipGroup = binding.chipGroup

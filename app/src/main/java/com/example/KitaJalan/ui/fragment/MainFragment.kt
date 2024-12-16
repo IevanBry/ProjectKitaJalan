@@ -8,20 +8,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.KitaJalan.R
+import com.example.KitaJalan.data.firebase.FirebaseAuthService
 import com.example.KitaJalan.data.model.DestinasiPostRequest
 import com.example.KitaJalan.data.network.RetrofitInstance
 import com.example.KitaJalan.data.repository.DestinasiRepository
+import com.example.KitaJalan.data.repository.FirebaseRepository
 import com.example.KitaJalan.databinding.FragmentMainBinding
 import com.example.KitaJalan.ui.adapter.AutoSliderAdapter
 import com.example.KitaJalan.ui.adapter.CategoryAdapter
 import com.example.KitaJalan.ui.adapter.CategoryItem
 import com.example.KitaJalan.ui.adapter.TrendsAdapter
-import com.example.KitaJalan.ui.viewmodel.DestinasiViewModel
+import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
 
 class MainFragment : Fragment() {
 
@@ -43,6 +47,7 @@ class MainFragment : Fragment() {
     ): View? {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
 
+        displayUsername()
         categoryAdapter()
         setupTrendsRecyclerView()
 //        addDestinasiData()
@@ -50,6 +55,20 @@ class MainFragment : Fragment() {
         observeDestinasiData()
 
         return binding.root
+    }
+
+    private fun displayUsername(){
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val email = currentUser?.email
+
+        if (!email.isNullOrEmpty()) {
+            val username = email.substringBefore('@')
+            val firstName = username.substringBefore(".")
+
+            val capitalizedFirstName = firstName.replaceFirstChar { it.uppercase() }
+
+            binding.username.text = capitalizedFirstName
+        }
     }
 
     private fun setupAutoSlider() {

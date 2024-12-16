@@ -2,6 +2,7 @@ package com.example.KitaJalan.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +30,27 @@ class SettingsFragment : Fragment() {
 
         firebaseAuth = FirebaseAuth.getInstance()
 
+        displayUsername()
+        setupSettingsList()
+
+        return binding.root
+    }
+
+    private fun displayUsername(){
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val email = currentUser?.email
+        binding.email.text = email
+
+        if (!email.isNullOrEmpty()) {
+            val username = email.substringBefore('@')
+            val firstName = username.substringBefore(".")
+
+            val capitalizedFirstName = firstName.replaceFirstChar { it.uppercase() }
+
+            binding.textNameSettings.text = capitalizedFirstName
+        }
+    }
+    private fun setupSettingsList() {
         val settingsItems = listOf(
             SettingItem("About Us", R.drawable.baseline_info_24),
             SettingItem("Log Out", R.drawable.baseline_logout_24)
@@ -39,22 +61,16 @@ class SettingsFragment : Fragment() {
 
         binding.settingsListView.setOnItemClickListener { _, _, position, _ ->
             when (position) {
-                0 -> {
-                    replaceFragment(AboutUsFragment())
-                }
-                1 -> {
-                    logout()
-                }
+                0 -> replaceFragment(AboutUsFragment())
+                1 -> logout()
             }
         }
-        return binding.root
     }
 
     private fun logout() {
         firebaseAuth.signOut()
-
         Toast.makeText(requireContext(), "Logged Out Successfully", Toast.LENGTH_SHORT).show()
-
+        Log.d("test","Berhasil logout")
         val intent = Intent(requireContext(), AuthenticationActivity::class.java)
         startActivity(intent)
         activity?.finish()

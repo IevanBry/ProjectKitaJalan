@@ -15,7 +15,7 @@ import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.BottomAddDestinationSheetLayoutBinding
 import com.example.KitaJalan.databinding.FragmentAdminDestinationBinding
 import com.example.KitaJalan.ui.adapter.DestinasiAdminAdapter
-import com.example.KitaJalan.ui.viewmodel.DestinasiViewModel
+import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetDialog
