@@ -50,7 +50,6 @@ class MainFragment : Fragment() {
         displayUsername()
         categoryAdapter()
         setupTrendsRecyclerView()
-//        addDestinasiData()
         setupAutoSlider()
         observeDestinasiData()
 
@@ -85,6 +84,7 @@ class MainFragment : Fragment() {
         trendsAdapter = TrendsAdapter(emptyList(), requireContext()) { selectedItem ->
             val detailFragment = DetailFragment()
             val bundle = Bundle().apply {
+                putString("_uuid", selectedItem._uuid)
                 putString("namaDestinasi", selectedItem.namaDestinasi)
                 putString("deskripsi", selectedItem.deskripsi)
                 putString("lokasi", selectedItem.lokasi)

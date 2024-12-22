@@ -16,6 +16,9 @@ class FirebaseViewModel(private val repository: FirebaseRepository) : ViewModel(
     private val _loginState = MutableLiveData<Resource<UserResponse>>()
     val loginState: LiveData<Resource<UserResponse>> = _loginState
 
+    private val _registerState = MutableLiveData<Resource<Boolean>>()
+    val registerState: LiveData<Resource<Boolean>> = _registerState
+
     fun login(context: Context, email: String, password: String) {
         if (NetworkUtils.isNetworkAvailable(context)) {
             viewModelScope.launch {
@@ -35,6 +38,27 @@ class FirebaseViewModel(private val repository: FirebaseRepository) : ViewModel(
             }
         } else {
             _loginState.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
+
+    fun register(context: Context, email: String, password: String) {
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            viewModelScope.launch {
+                try {
+                    _registerState.value = Resource.Loading()
+                    val isSuccess = repository.register(email, password)
+                    if (isSuccess) {
+                        _registerState.value = Resource.Success(true)
+                    } else {
+                        _registerState.value = Resource.Error("Registrasi gagal. Coba lagi.")
+                    }
+                } catch (e: Exception) {
+                    _registerState.value =
+                        Resource.Error(e.message ?: "Terjadi kesalahan saat registrasi")
+                }
+            }
+        } else {
+            _registerState.postValue(Resource.Error("No Internet Connection"))
         }
     }
 }

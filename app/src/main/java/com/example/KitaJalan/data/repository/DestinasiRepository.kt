@@ -14,4 +14,8 @@ class DestinasiRepository( private val api: ApiService) {
     suspend fun createDestination(destinasi: List<DestinasiPostRequest>): DestinasiResponse {
         return api.createDestinasi(tokenBearer, destinasi)
     }
+
+    suspend fun fetchDestinationByUuid(uuid: String): DestinasiResponse {
+        return api.getDestinasiByUuid(tokenBearer, uuid)
+    }
 }

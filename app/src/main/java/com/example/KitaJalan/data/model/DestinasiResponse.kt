@@ -7,6 +7,7 @@ data class DestinasiResponse(
 )
 
 data class DestinasiModel (
+    val _uuid: String,
     val namaDestinasi: String = "",
     val fasilitas: List<String> = emptyList(),
     val foto: String = "",

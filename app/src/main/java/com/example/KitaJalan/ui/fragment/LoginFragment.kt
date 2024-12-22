@@ -41,50 +41,46 @@ class LoginFragment : Fragment() {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
 
         firebaseAuth = FirebaseAuth.getInstance()
-        val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
+
+        checkIfLoggedIn()
+
+        observeLoginState()
+
+        setupListeners()
+
+        return binding.root
+    }
+
+    private fun checkIfLoggedIn() {
+        val isLoggedIn = firebaseAuth.currentUser != null
         if (isLoggedIn) {
             val userEmail = firebaseAuth.currentUser?.email
-            if (userEmail == "admin@gmail.com") {
-                // Redirect to AdminActivity if the email matches
-                val intent = Intent(context, AdminActivity::class.java)
-                startActivity(intent)
-            } else {
-                // Redirect to MainActivity if the email doesn't match
-                val intent = Intent(context, MainActivity::class.java)
-                startActivity(intent)
-            }
+            navigateToAppropriateActivity(userEmail)
         }
+    }
 
+    private fun observeLoginState() {
         firebaseViewModel.loginState.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Loading -> {
                     Log.d("Firebase User Authentication", "Mengirim Username Password...")
                 }
-
                 is Resource.Success -> {
                     val user = resource.data
                     Log.d("Firebase User Authentication", "Halo ${user?.email}")
-                    val userEmail = user?.email
-                    if (userEmail == "admin@gmail.com") {
-                        val intent = Intent(context, AdminActivity::class.java)
-                        startActivity(intent)
-                    } else {
-                        val intent = Intent(context, MainActivity::class.java)
-                        startActivity(intent)
-                    }
+                    navigateToAppropriateActivity(user?.email)
                 }
-
                 is Resource.Error -> {
                     Toast.makeText(context, resource.message, Toast.LENGTH_SHORT).show()
                 }
-
                 else -> {}
             }
         }
+    }
 
+    private fun setupListeners() {
         binding.btnSignUp.setOnClickListener {
-            val registerFragment = RegisterFragment()
-            replaceFragment(registerFragment)
+            navigateToRegisterFragment()
         }
 
         binding.btnLogin.setOnClickListener {
@@ -101,13 +97,36 @@ class LoginFragment : Fragment() {
             }
             firebaseViewModel.login(requireContext(), email, password)
         }
+    }
 
-        return binding.root
+    private fun navigateToAppropriateActivity(email: String?) {
+        when (email) {
+            "admin@gmail.com" -> {
+                val intent = Intent(context, AdminActivity::class.java)
+                startActivity(intent)
+            }
+            else -> {
+                val intent = Intent(context, MainActivity::class.java)
+                startActivity(intent)
+            }
+        }
+        activity?.finish()
+    }
+
+    private fun navigateToRegisterFragment() {
+        val registerFragment = RegisterFragment()
+        replaceFragment(registerFragment)
     }
 
     private fun replaceFragment(fragment: Fragment) {
         val transaction = parentFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment)
+        transaction.addToBackStack(null)
         transaction.commit()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

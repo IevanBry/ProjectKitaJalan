@@ -20,6 +20,9 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
     private val _createStatus = MutableLiveData<Resource<Unit>>()
     val createStatus: LiveData<Resource<Unit>> = _createStatus
 
+    private val _uuidData = MutableLiveData<Resource<DestinasiResponse>>()
+    val uuidData: LiveData<Resource<DestinasiResponse>> = _uuidData
+
     fun getDestinasi(context: Context, forceRefresh: Boolean = false) {
         if (data.value == null || forceRefresh) {
             _data.value = Resource.Loading()
@@ -59,6 +62,22 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
             }
         } else {
             _createStatus.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
+
+    fun getDestinasiByUuid(context: Context, uuid: String) {
+        _uuidData.value = Resource.Loading()
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            viewModelScope.launch {
+                try {
+                    val response = repository.fetchDestinationByUuid(uuid)
+                    _uuidData.postValue(Resource.Success(response))
+                } catch (e: Exception) {
+                    _uuidData.postValue(Resource.Error("Unknown Error : ${e.message}"))
+                }
+            }
+        } else {
+            _uuidData.postValue(Resource.Error("No Internet Connection"))
         }
     }
 }
