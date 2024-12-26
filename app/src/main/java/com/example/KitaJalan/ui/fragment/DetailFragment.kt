@@ -8,16 +8,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.example.KitaJalan.R
-import com.example.KitaJalan.databinding.FragmentDetailBinding
-import com.squareup.picasso.Picasso
-import androidx.viewpager2.widget.ViewPager2
-import com.example.KitaJalan.data.model.WishlistPostRequest
-import com.example.KitaJalan.data.network.RetrofitInstance
 import com.example.KitaJalan.data.repository.DestinasiRepository
-import com.example.KitaJalan.data.repository.WishlistRepository
-import com.example.KitaJalan.ui.viewModel.WishlistViewModel
+import com.example.KitaJalan.databinding.FragmentDetailBinding
+import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
+import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
-import com.google.android.material.tabs.TabLayout
+import com.squareup.picasso.Picasso
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 
@@ -25,12 +21,10 @@ class DetailFragment : Fragment() {
 
     private lateinit var binding: FragmentDetailBinding
 
-    private val wishlistViewModel: WishlistViewModel by viewModels {
-        ViewModelFactory(WishlistViewModel::class.java) {
-            WishlistViewModel(
-                WishlistRepository(RetrofitInstance.getCrudApi()),
-                DestinasiRepository(RetrofitInstance.getCrudApi())
-            )
+    private val destinasiViewModel: DestinasiViewModel by viewModels {
+        ViewModelFactory(DestinasiViewModel::class.java) {
+            val repository = DestinasiRepository()
+            DestinasiViewModel(repository)
         }
     }
 
@@ -41,7 +35,6 @@ class DetailFragment : Fragment() {
         binding = FragmentDetailBinding.inflate(inflater, container, false)
 
         val args = arguments
-        val uuid = args?.getString("_uuid")
 
         Picasso.get()
             .load(args?.getString("foto"))
@@ -49,17 +42,8 @@ class DetailFragment : Fragment() {
             .into(binding.detailImg)
 
         setupTabsAndViewPager()
-
-        if (uuid != null) {
-            checkFavoriteStatus(uuid)
-        }
-        binding.favoriteButton.setOnClickListener {
-            if (uuid != null) {
-                addToWishlist(uuid)
-            } else {
-                Toast.makeText(requireContext(), "Destinasi ID tidak valid", Toast.LENGTH_SHORT).show()
-            }
-        }
+        setupWishlistButton()
+        observeWishlistStatus()
 
         return binding.root
     }
@@ -92,49 +76,52 @@ class DetailFragment : Fragment() {
             }
         }.attach()
     }
+    private fun setupWishlistButton() {
+        val args = arguments
+        val destinasiId = args?.getString("id") ?: ""
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(requireContext(), "You must log in to add to wishlist", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-    private fun checkFavoriteStatus(uuid: String) {
-        wishlistViewModel.isFavorited(uuid,
-            onResult = { isFavorited ->
-                if (isFavorited) {
-                    binding.favoriteButton.setImageResource(R.drawable.baseline_favorite_24)
-                } else {
-                    binding.favoriteButton.setImageResource(R.drawable.ic_favorite_shadow_24dp)
+        destinasiViewModel.getWishlist(requireContext(), userId)
+        destinasiViewModel.wishlistData.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    val wishlist = resource.data ?: emptyList()
+                    if (wishlist.contains(destinasiId)) {
+                        binding.favoriteButton.setImageResource(R.drawable.baseline_favorite_24)
+                        binding.favoriteButton.isEnabled = false
+                    } else {
+                        binding.favoriteButton.setImageResource(R.drawable.ic_favorite_shadow_24dp)
+                        binding.favoriteButton.isEnabled = true
+                    }
                 }
-            },
-            onError = { error ->
-                Toast.makeText(requireContext(), "Gagal memeriksa status favorit: $error", Toast.LENGTH_SHORT).show()
+                is Resource.Error -> {
+                    Toast.makeText(requireContext(), "Failed to load wishlist: ${resource.message}", Toast.LENGTH_SHORT).show()
+                }
+                else -> {}
             }
-        )
+        }
     }
 
-    private fun addToWishlist(uuid: String) {
-        wishlistViewModel.isFavorited(uuid,
-            onResult = { isFavorited ->
-                if (isFavorited) {
-                    Toast.makeText(requireContext(), "Destinasi sudah ada di wishlist.", Toast.LENGTH_SHORT).show()
-                } else {
-                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-                    val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
-                    val wishlistRequest = WishlistPostRequest(
-                        idDestinasi = uuid,
-                        tanggalDitambahkan = currentDate,
-                        userId = userId,
-                    )
-                    wishlistViewModel.addToWishlist(requireContext(), listOf(wishlistRequest),
-                        onSuccess = {
-                            Toast.makeText(requireContext(), "Berhasil menambahkan ke wishlist!", Toast.LENGTH_SHORT).show()
-                            binding.favoriteButton.setImageResource(R.drawable.baseline_favorite_24)
-                        },
-                        onError = { error ->
-                            Toast.makeText(requireContext(), "Gagal menambahkan ke wishlist: $error", Toast.LENGTH_SHORT).show()
-                        }
-                    )
+    private fun observeWishlistStatus() {
+        destinasiViewModel.wishlistStatus.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Empty ->{
                 }
-            },
-            onError = { error ->
-                Toast.makeText(requireContext(), "Gagal memeriksa status favorit: $error", Toast.LENGTH_SHORT).show()
+                is Resource.Error ->{
+                }
+                is Resource.Loading ->{
+                }
+                is Resource.Success ->{
+                }
             }
-        )
+        }
+    }
+
+    private fun showMessage(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }

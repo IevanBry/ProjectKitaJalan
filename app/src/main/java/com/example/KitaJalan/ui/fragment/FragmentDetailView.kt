@@ -22,6 +22,7 @@ class FragmentDetailView : Fragment() {
         binding.descriptionText.text = args?.getString("deskripsi")
         binding.locationText.text = args?.getString("lokasi")
         binding.priceText.text = args?.getString("harga")
+        binding.rating.text = args?.getDouble("rating").toString()
 
         return binding.root
     }

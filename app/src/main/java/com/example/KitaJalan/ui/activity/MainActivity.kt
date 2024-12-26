@@ -1,6 +1,8 @@
 package com.example.KitaJalan.ui.activity
 
+import android.content.ContentValues.TAG
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,6 +14,8 @@ import com.example.KitaJalan.databinding.ActivityMainBinding
 import com.example.KitaJalan.ui.fragment.FavoriteFragment
 import com.example.KitaJalan.ui.fragment.SearchFragment
 import com.example.KitaJalan.ui.fragment.SettingsFragment
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 
 class MainActivity : AppCompatActivity() {
 

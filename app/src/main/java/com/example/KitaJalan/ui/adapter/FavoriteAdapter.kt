@@ -12,10 +12,10 @@ class FavoriteAdapter(
     private var destinationList: List<DestinasiModel>
 ) : RecyclerView.Adapter<FavoriteAdapter.FavoriteViewHolder>() {
 
-    class FavoriteViewHolder(private val binding: FavItemBinding) :
+    inner class FavoriteViewHolder(private val binding: FavItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(destination: DestinasiModel, context: Context) {
+        fun bind(destination: DestinasiModel) {
             binding.favTextView.text = destination.namaDestinasi
             binding.favDateTextView.text = destination.lokasi
         }
@@ -32,8 +32,7 @@ class FavoriteAdapter(
     }
 
     override fun onBindViewHolder(holder: FavoriteViewHolder, position: Int) {
-        val destination = destinationList[position]
-        holder.bind(destination, context)
+        holder.bind(destinationList[position])
     }
 
     override fun getItemCount(): Int = destinationList.size

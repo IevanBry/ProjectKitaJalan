@@ -8,15 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.KitaJalan.R
-import com.example.KitaJalan.data.firebase.FirebaseAuthService
-import com.example.KitaJalan.data.model.DestinasiPostRequest
-import com.example.KitaJalan.data.network.RetrofitInstance
+import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.repository.DestinasiRepository
-import com.example.KitaJalan.data.repository.FirebaseRepository
 import com.example.KitaJalan.databinding.FragmentMainBinding
 import com.example.KitaJalan.ui.adapter.AutoSliderAdapter
 import com.example.KitaJalan.ui.adapter.CategoryAdapter
@@ -34,7 +30,7 @@ class MainFragment : Fragment() {
 
     private val destinasiViewModel: DestinasiViewModel by viewModels {
         ViewModelFactory(DestinasiViewModel::class.java) {
-            val repository = DestinasiRepository(RetrofitInstance.getCrudApi())
+            val repository = DestinasiRepository()
             DestinasiViewModel(repository)
         }
     }
@@ -51,6 +47,7 @@ class MainFragment : Fragment() {
         categoryAdapter()
         setupTrendsRecyclerView()
         setupAutoSlider()
+//        addDestinasiData()
         observeDestinasiData()
 
         return binding.root
@@ -84,12 +81,13 @@ class MainFragment : Fragment() {
         trendsAdapter = TrendsAdapter(emptyList(), requireContext()) { selectedItem ->
             val detailFragment = DetailFragment()
             val bundle = Bundle().apply {
-                putString("_uuid", selectedItem._uuid)
+                putString("id", selectedItem.id)
                 putString("namaDestinasi", selectedItem.namaDestinasi)
                 putString("deskripsi", selectedItem.deskripsi)
                 putString("lokasi", selectedItem.lokasi)
                 putString("harga", "Rp. ${selectedItem.harga}")
                 putString("foto", selectedItem.foto)
+                putDouble("rating", selectedItem.rating)
             }
             detailFragment.arguments = bundle
 
@@ -145,8 +143,9 @@ class MainFragment : Fragment() {
                     binding.errorNewHorilist.root.visibility = View.GONE
                     binding.destinasiRecycler.visibility = View.VISIBLE
                     Log.d("Data Destinasi", "Data berhasil didapatkan")
-                    val trendsItem = resource.data!!.items
-                    trendsAdapter.updateData(trendsItem)
+                    resource.data?.let {
+                        trendsAdapter.updateData(it)
+                    }
                 }
                 is Resource.Error -> {
                     binding.emptyNewHoriList.root.visibility = View.GONE
@@ -165,66 +164,41 @@ class MainFragment : Fragment() {
 
     private fun addDestinasiData() {
         val destinasiList = listOf(
-            DestinasiPostRequest(
+            DestinasiModel(
                 namaDestinasi = "Taman Mini Indonesia Indah",
                 fasilitas = listOf("Kamar Mandi", "Tempat Parkir", "Kantin"),
                 foto = "https://example.com/foto1.jpg",
                 harga = 50000.0,
                 lokasi = "Jakarta Timur, Indonesia",
                 kategori = "Wisata Alam",
-                deskripsi = "Taman Mini Indonesia Indah adalah taman wisata budaya dengan miniatur Indonesia."
+                deskripsi = "Taman Mini Indonesia Indah adalah taman wisata budaya dengan miniatur Indonesia.",
+                rating = 4.5
             ),
-            DestinasiPostRequest(
+            DestinasiModel(
                 namaDestinasi = "Ancol Dreamland",
                 fasilitas = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir"),
                 foto = "https://example.com/foto2.jpg",
                 harga = 150000.0,
                 lokasi = "Jakarta Utara, Indonesia",
                 kategori = "Wisata Hiburan",
-                deskripsi = "Ancol Dreamland adalah kawasan wisata terbesar di Jakarta dengan berbagai wahana."
+                deskripsi = "Ancol Dreamland adalah kawasan wisata terbesar di Jakarta dengan berbagai wahana.",
+                rating = 4.7
             ),
-            DestinasiPostRequest(
+            DestinasiModel(
                 namaDestinasi = "Kawah Putih",
                 fasilitas = listOf("Parkir", "Toilet", "Warung Makan"),
                 foto = "https://example.com/foto3.jpg",
                 harga = 20000.0,
                 lokasi = "Bandung, Indonesia",
                 kategori = "Wisata Alam",
-                deskripsi = "Kawah Putih adalah danau kawah vulkanik yang indah dengan air berwarna putih kehijauan."
+                deskripsi = "Kawah Putih adalah danau kawah vulkanik yang indah dengan air berwarna putih kehijauan.",
+                rating = 4.3
             )
+
         )
         destinasiViewModel.addDestinasi(requireContext(), destinasiList)
-        destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Loading -> {
-                    binding.emptyNewHoriList.root.visibility = View.GONE
-                    binding.loadingNewHoriList.root.visibility = View.VISIBLE
-                    binding.errorNewHorilist.root.visibility = View.GONE
-                    binding.destinasiRecycler.visibility = View.GONE
-                    Log.d("Data Destinasi", "Mohon Tunggu..")
-                }
-                is Resource.Success -> {
-                    binding.emptyNewHoriList.root.visibility = View.GONE
-                    binding.loadingNewHoriList.root.visibility = View.GONE
-                    binding.errorNewHorilist.root.visibility = View.GONE
-                    binding.destinasiRecycler.visibility = View.VISIBLE
-                    Log.d("Data Destinasi", "Data berhasil didapatkan")
-                }
-                is Resource.Error -> {
-                    binding.emptyNewHoriList.root.visibility = View.GONE
-                    binding.loadingNewHoriList.root.visibility = View.GONE
-                    binding.errorNewHorilist.root.visibility = View.VISIBLE
-                    binding.destinasiRecycler.visibility = View.GONE
-                    binding.errorNewHorilist.errorMessage.text = resource.message
-                    binding.errorNewHorilist.retryButton.setOnClickListener {
-                        destinasiViewModel.getDestinasi(requireContext(), true)
-                    }
-                    Log.d("Data Destinasi", resource.message.toString())
-                }
-                else -> {}
-            }
-        }
     }
+
 
     @Override
     override fun onSaveInstanceState(outState: Bundle) {

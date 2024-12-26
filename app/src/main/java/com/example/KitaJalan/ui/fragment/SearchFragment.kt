@@ -30,19 +30,18 @@ class SearchFragment : Fragment() {
 
     private val destinasiViewModel: DestinasiViewModel by viewModels {
         ViewModelFactory(DestinasiViewModel::class.java) {
-            val repository = DestinasiRepository(RetrofitInstance.getCrudApi())
+            val repository = DestinasiRepository()
             DestinasiViewModel(repository)
         }
     }
 
     private var allDestinasiList: List<DestinasiModel> = emptyList()
-
     private lateinit var destinasiAdapter: DestinasiAdapter
 
-    val filterOptions = listOf(
+    private val filterOptions = listOf(
         "Price: Low to High",
         "Top Rated",
-        "Popular",
+        "Popular"
     )
 
     override fun onCreateView(
@@ -60,19 +59,6 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupSearchView() {
-        val searchView = binding.searchView
-
-        val searchPlate = searchView.findViewById<LinearLayout>(androidx.appcompat.R.id.search_plate)
-        searchPlate?.setBackgroundColor(Color.TRANSPARENT)
-
-        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
-        searchIcon.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN)
-
-        val searchEditText = binding.searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
-        searchEditText.setTextColor(Color.BLACK)
-        searchEditText.background = null
-        searchEditText.setHintTextColor(Color.BLACK)
-
         binding.searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -84,6 +70,7 @@ class SearchFragment : Fragment() {
             }
         })
     }
+
     private fun setupFilterChips() {
         val chipGroup: ChipGroup = binding.chipGroup
 
@@ -103,7 +90,18 @@ class SearchFragment : Fragment() {
     }
 
     private fun applyFilter(filterOption: String) {
-
+        when (filterOption) {
+            "Price: Low to High" -> {
+                val sortedList = allDestinasiList.sortedBy { it.harga }
+                destinasiAdapter.updateData(sortedList)
+            }
+            "Top Rated" -> {
+                val sortedList = allDestinasiList.sortedByDescending { it.rating }
+                destinasiAdapter.updateData(sortedList)
+            }
+            "Popular" -> {
+            }
+        }
     }
 
     private fun setupDestinasiRecyclerView() {
@@ -113,6 +111,7 @@ class SearchFragment : Fragment() {
             adapter = destinasiAdapter
         }
     }
+
     private fun searchDestinasi(query: String) {
         if (query.isEmpty()) {
             destinasiAdapter.updateData(allDestinasiList)
@@ -129,17 +128,14 @@ class SearchFragment : Fragment() {
         destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
             when (resource) {
                 is Resource.Success -> {
-                    allDestinasiList = resource.data!!.items
+                    allDestinasiList = resource.data!!
                     destinasiAdapter.updateData(allDestinasiList)
                 }
                 is Resource.Loading -> {
-                    // Handle loading state
                 }
                 is Resource.Error -> {
-                    // Handle error state
                 }
                 is Resource.Empty -> {
-                    // Handle empty state
                 }
             }
         }

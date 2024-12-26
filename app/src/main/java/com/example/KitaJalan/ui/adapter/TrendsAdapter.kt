@@ -52,9 +52,7 @@ class TrendsAdapter(
         }
     }
 
-    override fun getItemCount(): Int {
-        return items.size
-    }
+    override fun getItemCount(): Int = items.size
 
     class TrendViewHolder(val binding: ViewholderTrendBinding) : RecyclerView.ViewHolder(binding.root)
 }
