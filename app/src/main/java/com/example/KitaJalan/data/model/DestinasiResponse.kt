@@ -1,7 +1,5 @@
 package com.example.KitaJalan.data.model
 
-import com.google.firebase.database.Exclude
-
 data class DestinasiResponse(
     val cursor: String,
     val items: List<DestinasiModel>,

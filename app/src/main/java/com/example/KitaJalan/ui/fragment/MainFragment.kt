@@ -85,9 +85,10 @@ class MainFragment : Fragment() {
                 putString("namaDestinasi", selectedItem.namaDestinasi)
                 putString("deskripsi", selectedItem.deskripsi)
                 putString("lokasi", selectedItem.lokasi)
-                putString("harga", "Rp. ${selectedItem.harga}")
+                putDouble("harga", selectedItem.harga)
                 putString("foto", selectedItem.foto)
                 putDouble("rating", selectedItem.rating)
+                putStringArrayList("fasilitas", ArrayList(selectedItem.fasilitas))
             }
             detailFragment.arguments = bundle
 

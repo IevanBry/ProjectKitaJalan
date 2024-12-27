@@ -9,9 +9,7 @@ import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.utils.NetworkUtils
 import com.example.KitaJalan.utils.Resource
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class DestinasiViewModel(private val repository: DestinasiRepository) : ViewModel() {
 
@@ -81,5 +79,37 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
             _wishlistData.postValue(Resource.Error("No Internet Connection"))
         }
     }
+    fun addToWishlist(context: Context, userId: String, destinasiId: String) {
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            _wishlistStatus.value = Resource.Loading()
+            viewModelScope.launch {
+                try {
+                    repository.addToWishlist(userId, destinasiId)
+                    getWishlist(context, userId)
+                    _wishlistStatus.postValue(Resource.Success(Unit))
+                } catch (e: Exception) {
+                    _wishlistStatus.postValue(Resource.Error("Failed to add to wishlist: ${e.message}"))
+                }
+            }
+        } else {
+            _wishlistStatus.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
 
+    fun removeFromWishlist(context: Context, userId: String, destinasiId: String) {
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            _wishlistStatus.value = Resource.Loading()
+            viewModelScope.launch {
+                try {
+                    repository.removeFromWishlist(userId, destinasiId)
+                    getWishlist(context, userId)
+                    _wishlistStatus.postValue(Resource.Success(null))
+                } catch (e: Exception) {
+                    _wishlistStatus.postValue(Resource.Error("Failed to remove from wishlist: ${e.message}"))
+                }
+            }
+        } else {
+            _wishlistStatus.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
 }

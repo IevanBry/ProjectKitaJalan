@@ -55,4 +55,36 @@ class DestinasiRepository {
             emptyList()
         }
     }
+
+    suspend fun addToWishlist(userId: String, destinasiId: String) {
+        try {
+            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
+            FirebaseFirestore.getInstance().runTransaction { transaction ->
+                val snapshot = transaction.get(wishlistRef)
+                val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
+                if (!currentList.contains(destinasiId)) {
+                    val updatedList = currentList.toMutableList().apply { add(destinasiId) }
+                    transaction.set(wishlistRef, mapOf("destinations" to updatedList))
+                }
+            }.await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun removeFromWishlist(userId: String, destinasiId: String) {
+        try {
+            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
+            FirebaseFirestore.getInstance().runTransaction { transaction ->
+                val snapshot = transaction.get(wishlistRef)
+                val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
+                if (currentList.contains(destinasiId)) {
+                    val updatedList = currentList.toMutableList().apply { remove(destinasiId) }
+                    transaction.set(wishlistRef, mapOf("destinations" to updatedList))
+                }
+            }.await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 }
