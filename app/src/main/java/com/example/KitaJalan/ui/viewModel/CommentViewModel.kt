@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.KitaJalan.data.model.CommentModel
+import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.repository.CommentRepository
 import com.example.KitaJalan.utils.Resource
 import kotlinx.coroutines.launch
@@ -33,7 +34,6 @@ class CommentViewModel(private val repository: CommentRepository) : ViewModel() 
         }
     }
 
-    // Add a new comment
     fun addComment(komentar: CommentModel) {
         _addCommentStatus.value = Resource.Loading()
         viewModelScope.launch {
@@ -62,4 +62,57 @@ class CommentViewModel(private val repository: CommentRepository) : ViewModel() 
         }
     }
 
+    fun getTotalComments(destinasiId: String, callback: (Int) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val comments = repository.fetchKomentarByDestinasiId(destinasiId)
+                callback(comments.size)
+            } catch (e: Exception) {
+                callback(0)
+            }
+        }
+    }
+
+    private val averageRatingsMap = mutableMapOf<String, Double>()
+
+    fun fetchAverageRatings(destinasiList: List<DestinasiModel>, callback: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                for (destinasi in destinasiList) {
+                    val comments = repository.fetchKomentarByDestinasiId(destinasi.id)
+                    val averageRating = if (comments.isNotEmpty()) {
+                        comments.map { it.rating }.average()
+                    } else {
+                        0.0
+                    }
+                    averageRatingsMap[destinasi.id] = averageRating
+                }
+                callback()
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    fun getCachedAverageRating(destinasiId: String): Double {
+        return averageRatingsMap[destinasiId] ?: 0.0
+    }
+
+    private val totalCommentsMap = mutableMapOf<String, Int>()
+
+    fun fetchTotalComments(destinasiList: List<DestinasiModel>, callback: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                for (destinasi in destinasiList) {
+                    val comments = repository.fetchKomentarByDestinasiId(destinasi.id)
+                    totalCommentsMap[destinasi.id] = comments.size
+                }
+                callback()
+            } catch (e: Exception) {
+            }
+        }
+    }
+
+    fun getCachedTotalComments(destinasiId: String): Int {
+        return totalCommentsMap[destinasiId] ?: 0
+    }
 }

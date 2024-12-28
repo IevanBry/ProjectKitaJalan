@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.KitaJalan.R
+import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.databinding.FragmentFavoriteBinding
 import com.example.KitaJalan.ui.adapter.FavoriteAdapter
 import com.example.KitaJalan.utils.Resource
@@ -45,7 +47,9 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        favoriteAdapter = FavoriteAdapter(requireContext(), emptyList())
+        favoriteAdapter = FavoriteAdapter(requireContext(), emptyList()) { selectedDestination ->
+            navigateToDetail(selectedDestination)
+        }
         binding.recyclerViewFavorites.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerViewFavorites.adapter = favoriteAdapter
     }
@@ -86,5 +90,25 @@ class FavoriteFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun navigateToDetail(destination: DestinasiModel) {
+        val detailFragment = DetailFragment()
+        val bundle = Bundle().apply {
+            putString("id", destination.id)
+            putString("namaDestinasi", destination.namaDestinasi)
+            putString("deskripsi", destination.deskripsi)
+            putString("lokasi", destination.lokasi)
+            putDouble("harga", destination.harga)
+            putString("foto", destination.foto)
+            putDouble("rating", destination.rating)
+            putStringArrayList("fasilitas", ArrayList(destination.fasilitas))
+        }
+        detailFragment.arguments = bundle
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, detailFragment)
+            .addToBackStack(null)
+            .commit()
     }
 }

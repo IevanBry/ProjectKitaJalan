@@ -22,20 +22,16 @@ class CategoryAdapter(
         holder.bind(categoryItem)
     }
 
-    // Mengembalikan jumlah item dalam data
     override fun getItemCount(): Int = items.size
 
-    // ViewHolder yang menggunakan ViewBinding
     inner class CategoryViewHolder(private val binding: ItemCategoryBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        // Mengikat data ke ViewBinding
         fun bind(categoryItem: CategoryItem) {
             binding.categoryTitle.text = categoryItem.title
             binding.categoryImage.setImageResource(categoryItem.imageRes)
 
-            // Menangani klik item
             binding.root.setOnClickListener {
-                onItemClick(categoryItem)  // Memanggil lambda onItemClick
+                onItemClick(categoryItem)
             }
         }
     }

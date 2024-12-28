@@ -25,8 +25,10 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
     private val _wishlistData = MutableLiveData<Resource<List<String>>>()
     val wishlistData: LiveData<Resource<List<String>>> = _wishlistData
 
+    private var cachedData: List<DestinasiModel> = emptyList()
+
     fun getDestinasi(context: Context, forceRefresh: Boolean = false) {
-        if (data.value == null || forceRefresh) {
+        if (_data.value == null || forceRefresh) {
             _data.value = Resource.Loading()
             if (NetworkUtils.isNetworkAvailable(context)) {
                 viewModelScope.launch {
@@ -35,6 +37,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                         if (response.isEmpty()) {
                             _data.postValue(Resource.Empty("No Data Found"))
                         } else {
+                            cachedData = response
                             _data.postValue(Resource.Success(response))
                         }
                     } catch (e: Exception) {
@@ -79,6 +82,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
             _wishlistData.postValue(Resource.Error("No Internet Connection"))
         }
     }
+
     fun addToWishlist(context: Context, userId: String, destinasiId: String) {
         if (NetworkUtils.isNetworkAvailable(context)) {
             _wishlistStatus.value = Resource.Loading()

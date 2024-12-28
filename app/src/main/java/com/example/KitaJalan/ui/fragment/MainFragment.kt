@@ -104,18 +104,48 @@ class MainFragment : Fragment() {
     }
 
     private fun categoryAdapter() {
-        val categoryList = listOf(
-            CategoryItem("Wisata", R.drawable.cat1),
-            CategoryItem("Event", R.drawable.cat2),
-        )
+        destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    val destinations = resource.data ?: emptyList()
+                    val uniqueCategories = destinations.map { it.kategori }.distinct()
 
-        val categoryAdapter = CategoryAdapter(categoryList) { categoryItem ->
-            Toast.makeText(requireContext(), "Clicked: ${categoryItem.title}", Toast.LENGTH_SHORT).show()
-        }
+                    val categoryList = uniqueCategories.map { category ->
+                        val iconResId = when (category) {
+                            "Wisata Alam" -> R.drawable.cat1
+                            "Wisata Hiburan" -> R.drawable.cat2
+                            else -> R.drawable.logo
+                        }
+                        CategoryItem(category, iconResId)
+                    }
 
-        binding.recyclerGrid.apply {
-            layoutManager = GridLayoutManager(requireContext(), 2)
-            adapter = categoryAdapter
+                    val categoryAdapter = CategoryAdapter(categoryList) { categoryItem ->
+                        val categoryFragment = CategoryFragment()
+                        val bundle = Bundle().apply {
+                            putString("category", categoryItem.title)
+                        }
+                        categoryFragment.arguments = bundle
+
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, categoryFragment)
+                            .addToBackStack(null)
+                            .commit()
+                    }
+
+                    binding.recyclerGrid.apply {
+                        layoutManager = GridLayoutManager(requireContext(), 2)
+                        adapter = categoryAdapter
+                    }
+                }
+                is Resource.Empty -> {
+                    Toast.makeText(requireContext(), "No destinations found", Toast.LENGTH_SHORT).show()
+                }
+                is Resource.Error -> {
+                    Toast.makeText(requireContext(), "Failed to load categories", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                }
+            }
         }
     }
 

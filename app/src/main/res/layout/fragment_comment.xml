@@ -88,7 +88,6 @@
             android:clipToPadding="false"
             android:scrollbars="vertical" />
 
-        <!-- Placeholder untuk Empty, Loading, dan Error -->
         <include
             android:id="@+id/empty_comment"
             layout="@layout/item_empty"
