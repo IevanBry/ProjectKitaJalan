@@ -87,7 +87,6 @@ class MainFragment : Fragment() {
                 putString("lokasi", selectedItem.lokasi)
                 putDouble("harga", selectedItem.harga)
                 putString("foto", selectedItem.foto)
-                putDouble("rating", selectedItem.rating)
                 putStringArrayList("fasilitas", ArrayList(selectedItem.fasilitas))
             }
             detailFragment.arguments = bundle
@@ -203,7 +202,6 @@ class MainFragment : Fragment() {
                 lokasi = "Jakarta Timur, Indonesia",
                 kategori = "Wisata Alam",
                 deskripsi = "Taman Mini Indonesia Indah adalah taman wisata budaya dengan miniatur Indonesia.",
-                rating = 4.5
             ),
             DestinasiModel(
                 namaDestinasi = "Ancol Dreamland",
@@ -213,7 +211,6 @@ class MainFragment : Fragment() {
                 lokasi = "Jakarta Utara, Indonesia",
                 kategori = "Wisata Hiburan",
                 deskripsi = "Ancol Dreamland adalah kawasan wisata terbesar di Jakarta dengan berbagai wahana.",
-                rating = 4.7
             ),
             DestinasiModel(
                 namaDestinasi = "Kawah Putih",
@@ -223,7 +220,6 @@ class MainFragment : Fragment() {
                 lokasi = "Bandung, Indonesia",
                 kategori = "Wisata Alam",
                 deskripsi = "Kawah Putih adalah danau kawah vulkanik yang indah dengan air berwarna putih kehijauan.",
-                rating = 4.3
             )
 
         )

@@ -101,7 +101,6 @@ class FavoriteFragment : Fragment() {
             putString("lokasi", destination.lokasi)
             putDouble("harga", destination.harga)
             putString("foto", destination.foto)
-            putDouble("rating", destination.rating)
             putStringArrayList("fasilitas", ArrayList(destination.fasilitas))
         }
         detailFragment.arguments = bundle

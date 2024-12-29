@@ -19,6 +19,9 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
     private val _createStatus = MutableLiveData<Resource<Unit>>()
     val createStatus: LiveData<Resource<Unit>> = _createStatus
 
+    private val _deleteStatus = MutableLiveData<Resource<Unit>>()
+    val deleteStatus: LiveData<Resource<Unit>> = _deleteStatus
+
     private val _wishlistStatus = MutableLiveData<Resource<Unit>>()
     val wishlistStatus: LiveData<Resource<Unit>> = _wishlistStatus
 
@@ -64,6 +67,40 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
             }
         } else {
             _createStatus.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
+
+    fun updateDestinasi(context: Context, destinasi: DestinasiModel) {
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            viewModelScope.launch {
+                try {
+                    _createStatus.value = Resource.Loading()
+                    repository.updateDestination(destinasi)
+                    _createStatus.postValue(Resource.Success(Unit))
+                    getDestinasi(context, forceRefresh = true)
+                } catch (e: Exception) {
+                    _createStatus.postValue(Resource.Error("Error: ${e.message}"))
+                }
+            }
+        } else {
+            _createStatus.postValue(Resource.Error("No Internet Connection"))
+        }
+    }
+
+    fun deleteDestinasi(context: Context, destinasiId: String) {
+        if (NetworkUtils.isNetworkAvailable(context)) {
+            viewModelScope.launch {
+                try {
+                    _deleteStatus.value = Resource.Loading()
+                    repository.deleteDestination(destinasiId)
+                    _deleteStatus.postValue(Resource.Success(Unit))
+                    getDestinasi(context, forceRefresh = true)
+                } catch (e: Exception) {
+                    _deleteStatus.postValue(Resource.Error("Error: ${e.message}"))
+                }
+            }
+        } else {
+            _deleteStatus.postValue(Resource.Error("No Internet Connection"))
         }
     }
 

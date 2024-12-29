@@ -37,10 +37,10 @@ class DestinasiAdapter(
     override fun onBindViewHolder(holder: DestinasiViewHolder, position: Int) {
         val destinasi = items[position]
 
+        fetchAndDisplayRating(destinasi.id, holder)
         holder.binding.destinasiName.text = destinasi.namaDestinasi
         holder.binding.destinasiPrice.text = "Rp ${String.format("%,.0f", destinasi.harga)}"
         loadImage(destinasi.foto, holder.binding.imageDestinasi)
-        fetchAndDisplayRating(destinasi.id, holder)
 
         holder.binding.root.setOnClickListener {
             onItemClick(destinasi)
@@ -68,7 +68,8 @@ class DestinasiAdapter(
                 .error(R.drawable.bali)
                 .into(imageView)
         } else {
-            val drawableResourceId = context.resources.getIdentifier(picAddress, "drawable", context.packageName)
+            val drawableResourceId =
+                context.resources.getIdentifier(picAddress, "drawable", context.packageName)
             imageView.setImageResource(drawableResourceId)
         }
     }
@@ -77,5 +78,6 @@ class DestinasiAdapter(
         return items.size
     }
 
-    class DestinasiViewHolder(val binding: ItemDestinasiBinding) : RecyclerView.ViewHolder(binding.root)
+    class DestinasiViewHolder(val binding: ItemDestinasiBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }

@@ -44,10 +44,17 @@ class DestinasiAdminAdapter(
         fun bind(destinasi: DestinasiModel) {
             binding.title.text = destinasi.namaDestinasi
             binding.subtitle.text = destinasi.kategori
+            binding.price.text = "Harga: Rp${destinasi.harga}"
+            binding.location.text = "Lokasi: ${destinasi.lokasi}"
+            binding.description.text = "Deskripsi: ${destinasi.deskripsi}"
+            binding.facilities.text = "Fasilitas: ${destinasi.fasilitas.joinToString(", ")}"
 
             Picasso.get()
                 .load(destinasi.foto)
-                .error(R.drawable.bali)
+                .placeholder(R.drawable.logo)
+                .error(R.drawable.logo)
+                .fit()
+                .centerCrop()
                 .into(binding.image)
         }
     }

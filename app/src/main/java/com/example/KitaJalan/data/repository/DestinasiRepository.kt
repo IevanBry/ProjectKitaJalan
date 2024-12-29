@@ -33,6 +33,25 @@ class DestinasiRepository {
         }
     }
 
+    // Fungsi untuk memperbarui destinasi
+    suspend fun updateDestination(destinasi: DestinasiModel) {
+        try {
+            val docRef = firestore.collection("destinasi").document(destinasi.id!!)
+            docRef.set(destinasi).await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun deleteDestination(destinasiId: String) {
+        try {
+            val docRef = firestore.collection("destinasi").document(destinasiId)
+            docRef.delete().await()
+        } catch (e: Exception) {
+            throw e
+        }
+    }
+
     suspend fun getWishlist(userId: String): List<String> {
         return try {
             val snapshot = firestore.collection("wishlist").document(userId).get().await()

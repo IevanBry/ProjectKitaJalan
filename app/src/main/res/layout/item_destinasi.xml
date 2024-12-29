@@ -31,7 +31,6 @@
             android:padding="8dp"
             android:fontFamily="@font/poppins_semibold"
             android:text="Destinasi Name"
-            android:minHeight="50dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textAlignment="textStart"
