@@ -1,7 +1,9 @@
 package com.example.KitaJalan.data.repository
 
-import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.model.CommentModel
+import com.example.KitaJalan.data.model.DestinasiModel
+import com.example.KitaJalan.data.model.DestinasiPostRequest
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -48,27 +50,31 @@ class DestinasiRepository {
         }
     }
 
-    suspend fun createDestination(destinasi: List<DestinasiModel>) {
+    suspend fun createDestination(destinasi: List<DestinasiPostRequest>) {
         try {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            val adminId = currentUser?.uid ?: throw IllegalStateException("User not logged in")
+
             val batch = firestore.batch()
             destinasi.forEach { destinasiItem ->
                 val docRef = firestore.collection("destinasi").document()
-                val destinasiWithId = destinasiItem.copy(id = docRef.id)
-                batch.set(docRef, destinasiWithId)
+                val destinasiWithAdminId = destinasiItem.copy(
+                    id = docRef.id,
+                    adminId = adminId
+                )
+                batch.set(docRef, destinasiWithAdminId)
             }
             batch.commit().await()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw e
         }
     }
 
-    suspend fun updateDestination(destinasi: DestinasiModel) {
+    suspend fun updateDestination(destinasi: DestinasiPostRequest) {
         try {
             val docRef = firestore.collection("destinasi").document(destinasi.id!!)
             docRef.set(destinasi).await()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw e
         }
     }
@@ -78,7 +84,6 @@ class DestinasiRepository {
             val docRef = firestore.collection("destinasi").document(destinasiId)
             docRef.delete().await()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw e
         }
     }
@@ -88,7 +93,6 @@ class DestinasiRepository {
             val snapshot = firestore.collection("wishlist").document(userId).get().await()
             snapshot["destinations"] as? List<String> ?: emptyList()
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
@@ -103,15 +107,14 @@ class DestinasiRepository {
                 destinasi.copy(id = document.id)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
             emptyList()
         }
     }
 
     suspend fun addToWishlist(userId: String, destinasiId: String) {
         try {
-            val wishlistRef = firestore.collection("wishlist").document(userId)
-            firestore.runTransaction { transaction ->
+            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
+            FirebaseFirestore.getInstance().runTransaction { transaction ->
                 val snapshot = transaction.get(wishlistRef)
                 val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
                 if (!currentList.contains(destinasiId)) {
@@ -120,15 +123,14 @@ class DestinasiRepository {
                 }
             }.await()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw e
         }
     }
 
     suspend fun removeFromWishlist(userId: String, destinasiId: String) {
         try {
-            val wishlistRef = firestore.collection("wishlist").document(userId)
-            firestore.runTransaction { transaction ->
+            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
+            FirebaseFirestore.getInstance().runTransaction { transaction ->
                 val snapshot = transaction.get(wishlistRef)
                 val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
                 if (currentList.contains(destinasiId)) {
@@ -137,7 +139,6 @@ class DestinasiRepository {
                 }
             }.await()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw e
         }
     }

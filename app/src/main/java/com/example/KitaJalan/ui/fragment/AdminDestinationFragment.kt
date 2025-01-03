@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.KitaJalan.data.model.DestinasiModel
+import com.example.KitaJalan.data.model.DestinasiPostRequest
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.BottomAddDestinationSheetLayoutBinding
 import com.example.KitaJalan.databinding.FragmentAdminDestinationBinding
@@ -60,7 +61,7 @@ class AdminDestinationFragment : Fragment() {
         }
     }
 
-    private fun showBottomSheetDialog(existingDestinasi: DestinasiModel? = null) {
+    private fun showBottomSheetDialog(existingDestinasi: DestinasiPostRequest? = null) {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
         val bottomSheetBinding =
             BottomAddDestinationSheetLayoutBinding.inflate(LayoutInflater.from(requireContext()))
@@ -125,15 +126,28 @@ class AdminDestinationFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val destinasiRequest = DestinasiModel(
-                namaDestinasi = title,
-                fasilitas = fasilitasList,
-                foto = picAddress,
-                harga = price.toDoubleOrNull() ?: 0.0,
-                lokasi = location,
-                kategori = subtitle,
-                deskripsi = description
-            )
+            val destinasiRequest = if (existingDestinasi != null) {
+                DestinasiPostRequest(
+                    id = existingDestinasi.id, // Pastikan `DestinasiPostRequest` memiliki field `id`
+                    namaDestinasi = title,
+                    fasilitas = fasilitasList,
+                    foto = picAddress,
+                    harga = price.toDoubleOrNull() ?: 0.0,
+                    lokasi = location,
+                    kategori = subtitle,
+                    deskripsi = description
+                )
+            } else {
+                DestinasiPostRequest(
+                    namaDestinasi = title,
+                    fasilitas = fasilitasList,
+                    foto = picAddress,
+                    harga = price.toDoubleOrNull() ?: 0.0,
+                    lokasi = location,
+                    kategori = subtitle,
+                    deskripsi = description
+                )
+            }
 
             if (existingDestinasi == null) {
                 createNewDestination(destinasiRequest)
@@ -185,38 +199,66 @@ class AdminDestinationFragment : Fragment() {
         }
     }
 
-    private fun createNewDestination(destinasi: DestinasiModel) {
+    private fun createNewDestination(destinasi: DestinasiPostRequest) {
         destinasiViewModel.addDestinasi(requireContext(), listOf(destinasi))
         destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
-                is Resource.Error -> Snackbar.make(binding.root, "Gagal menambahkan destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                is Resource.Success -> {
+                    Snackbar.make(binding.root, "Destinasi berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
+                    getDestination() // Refresh data setelah penambahan
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, "Gagal menambahkan destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                }
                 else -> {}
             }
         }
     }
 
-    private fun updateDestination(destinasi: DestinasiModel) {
+    private fun updateDestination(destinasi: DestinasiPostRequest) {
         destinasiViewModel.updateDestinasi(requireContext(), destinasi)
         destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil diperbarui!", Snackbar.LENGTH_SHORT).show()
-                is Resource.Error -> Snackbar.make(binding.root, "Gagal memperbarui destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                is Resource.Success -> {
+                    Snackbar.make(binding.root, "Destinasi berhasil diperbarui!", Snackbar.LENGTH_SHORT).show()
+                    getDestination() // Refresh data setelah pembaruan
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, "Gagal memperbarui destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                }
+                is Resource.Loading -> {
+
+                }
                 else -> {}
             }
         }
     }
 
     private fun onEditClick(destinasi: DestinasiModel) {
-        showBottomSheetDialog(destinasi)
+        val destinasiPostRequest = DestinasiPostRequest(
+            id = destinasi.id,
+            namaDestinasi = destinasi.namaDestinasi,
+            fasilitas = destinasi.fasilitas,
+            foto = destinasi.foto,
+            harga = destinasi.harga,
+            lokasi = destinasi.lokasi,
+            kategori = destinasi.kategori,
+            deskripsi = destinasi.deskripsi
+        )
+        showBottomSheetDialog(destinasiPostRequest)
     }
 
     private fun onDeleteClick(destinasi: DestinasiModel) {
         destinasiViewModel.deleteDestinasi(requireContext(), destinasi.id!!)
         destinasiViewModel.deleteStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
-                is Resource.Error -> Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                is Resource.Success -> {
+                    Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
+                    getDestination() // Refresh data setelah penghapusan
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                }
                 else -> {}
             }
         }

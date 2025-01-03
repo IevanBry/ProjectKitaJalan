@@ -100,15 +100,17 @@ class LoginFragment : Fragment() {
     }
 
     private fun navigateToAppropriateActivity(email: String?) {
-        when (email) {
-            "admin@gmail.com" -> {
+        if (email != null) {
+            if (email.endsWith("@admin.com") || email.equals("admin@gmail.com", ignoreCase = true)) {
                 val intent = Intent(context, AdminActivity::class.java)
                 startActivity(intent)
-            }
-            else -> {
+            } else {
                 val intent = Intent(context, MainActivity::class.java)
                 startActivity(intent)
             }
+        } else {
+            Toast.makeText(context, "Email tidak valid", Toast.LENGTH_SHORT).show()
+            return
         }
         activity?.finish()
     }

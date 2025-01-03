@@ -10,7 +10,7 @@ import com.squareup.picasso.Picasso
 
 class DestinasiAdminAdapter(
     private var items: List<DestinasiModel>,
-    private val onEditClick: (DestinasiModel) -> Unit,
+    private val onEditClick: (DestinasiModel) -> Unit, // Ubah ke DestinasiModel
     private val onDeleteClick: (DestinasiModel) -> Unit
 ) : RecyclerView.Adapter<DestinasiAdminAdapter.DestinasiViewHolder>() {
 
@@ -29,7 +29,7 @@ class DestinasiAdminAdapter(
         holder.bind(item)
 
         holder.binding.btnEdit.setOnClickListener {
-            onEditClick(item)
+            onEditClick(item) // Sekarang sesuai tipe
         }
 
         holder.binding.btnDelete.setOnClickListener {

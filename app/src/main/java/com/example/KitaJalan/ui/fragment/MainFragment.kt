@@ -223,7 +223,7 @@ class MainFragment : Fragment() {
             )
 
         )
-        destinasiViewModel.addDestinasi(requireContext(), destinasiList)
+//        destinasiViewModel.addDestinasi(requireContext(), destinasiList)
     }
 
 

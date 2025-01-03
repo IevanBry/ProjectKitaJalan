@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.KitaJalan.data.model.DestinasiModel
+import com.example.KitaJalan.data.model.DestinasiPostRequest
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.utils.NetworkUtils
 import com.example.KitaJalan.utils.Resource
@@ -53,7 +54,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
         }
     }
 
-    fun addDestinasi(context: Context, destinasi: List<DestinasiModel>) {
+    fun addDestinasi(context: Context, destinasi: List<DestinasiPostRequest>) {
         if (NetworkUtils.isNetworkAvailable(context)) {
             viewModelScope.launch {
                 try {
@@ -70,7 +71,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
         }
     }
 
-    fun updateDestinasi(context: Context, destinasi: DestinasiModel) {
+    fun updateDestinasi(context: Context, destinasi: DestinasiPostRequest) {
         if (NetworkUtils.isNetworkAvailable(context)) {
             viewModelScope.launch {
                 try {

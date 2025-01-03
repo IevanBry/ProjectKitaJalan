@@ -8,6 +8,7 @@ data class DestinasiResponse(
 
 data class DestinasiModel (
     val id: String = "",
+    val adminId: String = "",
     val namaDestinasi: String = "",
     val fasilitas: List<String> = emptyList(),
     val foto: String = "",
