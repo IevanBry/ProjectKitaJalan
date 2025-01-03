@@ -1,6 +1,7 @@
 package com.example.KitaJalan.data.repository
 
 import com.example.KitaJalan.data.model.DestinasiModel
+import com.example.KitaJalan.data.model.CommentModel
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -11,12 +12,39 @@ class DestinasiRepository {
     suspend fun fetchDestination(): List<DestinasiModel> {
         return try {
             val snapshot = firestore.collection("destinasi").get().await()
-            snapshot.documents.map { document ->
+            val destinasiList = snapshot.documents.map { document ->
                 val destinasi = document.toObject(DestinasiModel::class.java)!!
                 destinasi.copy(id = document.id)
             }
+
+            destinasiList.map { destinasi ->
+                val comments = fetchCommentsByDestinasiId(destinasi.id)
+                destinasi.copy(
+                    averageRating = if (comments.isNotEmpty()) {
+                        comments.map { it.rating }.average()
+                    } else {
+                        0.0
+                    },
+                    totalComments = comments.size
+                )
+            }
         } catch (e: Exception) {
-            throw e
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    private suspend fun fetchCommentsByDestinasiId(destinasiId: String): List<CommentModel> {
+        return try {
+            val snapshot = firestore.collection("komentar")
+                .whereEqualTo("destinasiId", destinasiId)
+                .get().await()
+            snapshot.documents.map { document ->
+                document.toObject(CommentModel::class.java)!!
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 
@@ -25,20 +53,22 @@ class DestinasiRepository {
             val batch = firestore.batch()
             destinasi.forEach { destinasiItem ->
                 val docRef = firestore.collection("destinasi").document()
-                batch.set(docRef, destinasiItem)
+                val destinasiWithId = destinasiItem.copy(id = docRef.id)
+                batch.set(docRef, destinasiWithId)
             }
             batch.commit().await()
         } catch (e: Exception) {
+            e.printStackTrace()
             throw e
         }
     }
 
-    // Fungsi untuk memperbarui destinasi
     suspend fun updateDestination(destinasi: DestinasiModel) {
         try {
             val docRef = firestore.collection("destinasi").document(destinasi.id!!)
             docRef.set(destinasi).await()
         } catch (e: Exception) {
+            e.printStackTrace()
             throw e
         }
     }
@@ -48,6 +78,7 @@ class DestinasiRepository {
             val docRef = firestore.collection("destinasi").document(destinasiId)
             docRef.delete().await()
         } catch (e: Exception) {
+            e.printStackTrace()
             throw e
         }
     }
@@ -57,6 +88,7 @@ class DestinasiRepository {
             val snapshot = firestore.collection("wishlist").document(userId).get().await()
             snapshot["destinations"] as? List<String> ?: emptyList()
         } catch (e: Exception) {
+            e.printStackTrace()
             emptyList()
         }
     }
@@ -71,14 +103,15 @@ class DestinasiRepository {
                 destinasi.copy(id = document.id)
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             emptyList()
         }
     }
 
     suspend fun addToWishlist(userId: String, destinasiId: String) {
         try {
-            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
-            FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val wishlistRef = firestore.collection("wishlist").document(userId)
+            firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(wishlistRef)
                 val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
                 if (!currentList.contains(destinasiId)) {
@@ -87,14 +120,15 @@ class DestinasiRepository {
                 }
             }.await()
         } catch (e: Exception) {
+            e.printStackTrace()
             throw e
         }
     }
 
     suspend fun removeFromWishlist(userId: String, destinasiId: String) {
         try {
-            val wishlistRef = FirebaseFirestore.getInstance().collection("wishlist").document(userId)
-            FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val wishlistRef = firestore.collection("wishlist").document(userId)
+            firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(wishlistRef)
                 val currentList = snapshot["destinations"] as? List<String> ?: emptyList()
                 if (currentList.contains(destinasiId)) {
@@ -103,6 +137,7 @@ class DestinasiRepository {
                 }
             }.await()
         } catch (e: Exception) {
+            e.printStackTrace()
             throw e
         }
     }

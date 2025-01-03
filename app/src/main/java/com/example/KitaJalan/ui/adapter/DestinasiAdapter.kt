@@ -4,21 +4,15 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.KitaJalan.R
 import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.databinding.ItemDestinasiBinding
-import com.example.KitaJalan.ui.viewModel.CommentViewModel
 import com.squareup.picasso.Picasso
-import kotlinx.coroutines.launch
 
 class DestinasiAdapter(
     private var items: List<DestinasiModel>,
     private val context: Context,
-    private val commentViewModel: CommentViewModel,
-    private val lifecycleOwner: LifecycleOwner,
     private val onItemClick: (DestinasiModel) -> Unit
 ) : RecyclerView.Adapter<DestinasiAdapter.DestinasiViewHolder>() {
 
@@ -37,27 +31,15 @@ class DestinasiAdapter(
     override fun onBindViewHolder(holder: DestinasiViewHolder, position: Int) {
         val destinasi = items[position]
 
-        fetchAndDisplayRating(destinasi.id, holder)
         holder.binding.destinasiName.text = destinasi.namaDestinasi
         holder.binding.destinasiPrice.text = "Rp ${String.format("%,.0f", destinasi.harga)}"
+        holder.binding.ratingBar.rating = destinasi.averageRating.toFloat()
+        holder.binding.destinasiRating.text =
+            "${"%.1f".format(destinasi.averageRating)}/5 (${destinasi.totalComments} Reviews)"
         loadImage(destinasi.foto, holder.binding.imageDestinasi)
 
         holder.binding.root.setOnClickListener {
             onItemClick(destinasi)
-        }
-    }
-
-    private fun fetchAndDisplayRating(destinasiId: String, holder: DestinasiViewHolder) {
-        lifecycleOwner.lifecycleScope.launch {
-            commentViewModel.calculateAverageRating(destinasiId) { averageRating ->
-                holder.binding.ratingBar.rating = averageRating.toFloat()
-                holder.binding.destinasiRating.text = "${"%.1f".format(averageRating)}/5"
-            }
-
-            commentViewModel.getTotalComments(destinasiId) { totalComments ->
-                val currentText = holder.binding.destinasiRating.text.toString()
-                holder.binding.destinasiRating.text = "$currentText ($totalComments Reviews)"
-            }
         }
     }
 

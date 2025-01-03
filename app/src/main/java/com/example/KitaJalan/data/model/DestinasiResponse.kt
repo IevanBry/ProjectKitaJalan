@@ -14,5 +14,7 @@ data class DestinasiModel (
     val harga: Double = 0.0,
     val lokasi: String = "",
     val kategori: String = "",
-    val deskripsi: String = ""
+    val deskripsi: String = "",
+    val averageRating: Double = 0.0,
+    val totalComments: Int = 0
 )

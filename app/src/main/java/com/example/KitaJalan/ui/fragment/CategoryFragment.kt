@@ -9,11 +9,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.KitaJalan.R
-import com.example.KitaJalan.data.repository.CommentRepository
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.FragmentCategoryBinding
 import com.example.KitaJalan.ui.adapter.DestinasiAdapter
-import com.example.KitaJalan.ui.viewModel.CommentViewModel
 import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
@@ -27,13 +25,6 @@ class CategoryFragment : Fragment() {
         ViewModelFactory(DestinasiViewModel::class.java) {
             val repository = DestinasiRepository()
             DestinasiViewModel(repository)
-        }
-    }
-
-    private val commentViewModel: CommentViewModel by viewModels {
-        ViewModelFactory(CommentViewModel::class.java) {
-            val repository = CommentRepository()
-            CommentViewModel(repository)
         }
     }
 
@@ -54,8 +45,6 @@ class CategoryFragment : Fragment() {
         destinasiAdapter = DestinasiAdapter(
             items = emptyList(),
             context = requireContext(),
-            commentViewModel = commentViewModel,
-            lifecycleOwner = viewLifecycleOwner,
             onItemClick = { destinasi ->
                 val detailFragment = DetailFragment()
                 val bundle = Bundle().apply {
@@ -66,6 +55,7 @@ class CategoryFragment : Fragment() {
                     putDouble("harga", destinasi.harga)
                     putString("foto", destinasi.foto)
                     putStringArrayList("fasilitas", ArrayList(destinasi.fasilitas))
+                    putDouble("averageRating", destinasi.averageRating)
                 }
                 detailFragment.arguments = bundle
                 parentFragmentManager.beginTransaction()
@@ -108,7 +98,8 @@ class CategoryFragment : Fragment() {
 
             if (filteredList.isEmpty()) {
                 binding.emptyKategori.root.visibility = View.VISIBLE
-                binding.emptyKategori.emptyMessage.text = "Tidak ada destinasi yang sesuai dengan pencarian \"$query\""
+                binding.emptyKategori.emptyMessage.text =
+                    "Tidak ada destinasi yang sesuai dengan pencarian \"$query\""
                 binding.recyclerViewDestinasi.visibility = View.GONE
             } else {
                 binding.emptyKategori.root.visibility = View.GONE
@@ -121,7 +112,8 @@ class CategoryFragment : Fragment() {
 
             if (categoryFilteredData.isEmpty()) {
                 binding.emptyKategori.root.visibility = View.VISIBLE
-                binding.emptyKategori.emptyMessage.text = "Tidak ada destinasi untuk kategori $category"
+                binding.emptyKategori.emptyMessage.text =
+                    "Tidak ada destinasi untuk kategori $category"
                 binding.recyclerViewDestinasi.visibility = View.GONE
             } else {
                 binding.emptyKategori.root.visibility = View.GONE

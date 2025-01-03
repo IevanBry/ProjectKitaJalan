@@ -10,11 +10,9 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.KitaJalan.R
 import com.example.KitaJalan.data.model.DestinasiModel
-import com.example.KitaJalan.data.repository.CommentRepository
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.databinding.FragmentSearchBinding
 import com.example.KitaJalan.ui.adapter.DestinasiAdapter
-import com.example.KitaJalan.ui.viewModel.CommentViewModel
 import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
@@ -33,18 +31,12 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private val commentViewModel: CommentViewModel by viewModels {
-        ViewModelFactory(CommentViewModel::class.java) {
-            val repository = CommentRepository()
-            CommentViewModel(repository)
-        }
-    }
-
     private var allDestinasiList: List<DestinasiModel> = emptyList()
     private lateinit var destinasiAdapter: DestinasiAdapter
 
     private val filterOptions = listOf(
         "Price: Low to High",
+        "Price: High to Low",
         "Top Rated",
         "Popular"
     )
@@ -106,46 +98,22 @@ class SearchFragment : Fragment() {
     }
 
     private fun applyFilter(filterOption: String) {
-        destinasiAdapter.updateData(allDestinasiList)
-
-        when (filterOption) {
-            "Price: Low to High" -> {
-                val sortedList = allDestinasiList.sortedBy { it.harga }
-                destinasiAdapter.updateData(sortedList)
-                binding.recyclerViewDestinasi.scrollToPosition(0)
-            }
-            "Price: High to Low" -> {
-                val sortedList = allDestinasiList.sortedByDescending { it.harga }
-                destinasiAdapter.updateData(sortedList)
-                binding.recyclerViewDestinasi.scrollToPosition(0)
-            }
-            "Top Rated" -> {
-                commentViewModel.fetchAverageRatings(allDestinasiList) {
-                    val ratedList = allDestinasiList.sortedByDescending { destinasi ->
-                        commentViewModel.getCachedAverageRating(destinasi.id)
-                    }
-                    destinasiAdapter.updateData(ratedList)
-                    binding.recyclerViewDestinasi.scrollToPosition(0)
-                }
-            }
-            "Popular" -> {
-                commentViewModel.fetchTotalComments(allDestinasiList) {
-                    val popularList = allDestinasiList.sortedByDescending { destinasi ->
-                        commentViewModel.getCachedTotalComments(destinasi.id)
-                    }
-                    destinasiAdapter.updateData(popularList)
-                    binding.recyclerViewDestinasi.scrollToPosition(0)
-                }
-            }
+        val sortedList = when (filterOption) {
+            "Price: Low to High" -> allDestinasiList.sortedBy { it.harga }
+            "Price: High to Low" -> allDestinasiList.sortedByDescending { it.harga }
+            "Top Rated" -> allDestinasiList.sortedByDescending { it.averageRating }
+            "Popular" -> allDestinasiList.sortedByDescending { it.totalComments }
+            else -> allDestinasiList
         }
+
+        destinasiAdapter.updateData(sortedList)
+        binding.recyclerViewDestinasi.scrollToPosition(0)
     }
 
     private fun setupDestinasiRecyclerView() {
         destinasiAdapter = DestinasiAdapter(
             items = emptyList(),
             context = requireContext(),
-            commentViewModel = commentViewModel,
-            lifecycleOwner = viewLifecycleOwner
         ) { selectedItem ->
             navigateToDetail(selectedItem)
         }
@@ -227,6 +195,7 @@ class SearchFragment : Fragment() {
             putDouble("harga", destinasi.harga)
             putString("foto", destinasi.foto)
             putStringArrayList("fasilitas", ArrayList(destinasi.fasilitas))
+            putDouble("averageRating", destinasi.averageRating)
         }
         detailFragment.arguments = bundle
 
