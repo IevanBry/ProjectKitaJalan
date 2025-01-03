@@ -42,23 +42,21 @@
                 android:scrollbars="vertical" />
 
             <include
-                android:id="@+id/empty_wisata"
+                android:id="@+id/empty_event"
                 layout="@layout/item_empty"
                 android:visibility="gone" />
 
             <include
-                android:id="@+id/loading_wisata"
+                android:id="@+id/loading_event"
                 layout="@layout/item_loading"
                 android:visibility="gone" />
 
             <include
-                android:id="@+id/error_wisata"
+                android:id="@+id/error_event"
                 layout="@layout/item_error"
                 android:visibility="gone" />
 
         </FrameLayout>
-
-
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

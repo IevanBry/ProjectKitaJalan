@@ -1,5 +1,8 @@
 package com.example.KitaJalan.ui.adapter
 
+import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -9,10 +12,12 @@ import com.example.KitaJalan.databinding.ItemEventAdminBinding
 import com.squareup.picasso.Picasso
 
 class EventAdminAdapter(
-    private val events: List<EventModel>
+    private var events: List<EventModel>,
+    private val onEditClick: (EventModel) -> Unit,
+    private val onDeleteClick: (EventModel) -> Unit
 ) : RecyclerView.Adapter<EventAdminAdapter.EventViewHolder>() {
 
-    class EventViewHolder(private val binding: ItemEventAdminBinding) :
+    inner class EventViewHolder(private val binding: ItemEventAdminBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(event: EventModel) {
@@ -25,7 +30,45 @@ class EventAdminAdapter(
                 .load(event.gambarUrl)
                 .error(R.drawable.sample_event)
                 .into(binding.gambarEvent)
+
+            binding.iconLocation.setOnClickListener {
+                showLocationDialog(event.googleMapsUrl)
+            }
+
+            binding.iconEdit.setOnClickListener {
+                onEditClick(event)
+            }
+
+            binding.iconDelete.setOnClickListener {
+                onDeleteClick(event)
+            }
         }
+
+        private fun showLocationDialog(googleMapsUrl: String) {
+            val context = binding.root.context
+            AlertDialog.Builder(context)
+                .setTitle("Buka Lokasi")
+                .setMessage("Apakah Anda ingin membuka lokasi ini di Google Maps?")
+                .setPositiveButton("Ya") { _, _ ->
+                    openGoogleMaps(googleMapsUrl)
+                }
+                .setNegativeButton("Tidak", null)
+                .show()
+        }
+
+        private fun openGoogleMaps(googleMapsUrl: String) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(googleMapsUrl))
+                binding.root.context.startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun updateData(newEvents: List<EventModel>) {
+        this.events = newEvents
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {

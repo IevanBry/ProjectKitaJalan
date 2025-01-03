@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,7 +17,11 @@ import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
+import java.text.DecimalFormat
+import java.util.UUID
 
 class AdminDestinationFragment : Fragment() {
 
@@ -61,15 +66,50 @@ class AdminDestinationFragment : Fragment() {
             BottomAddDestinationSheetLayoutBinding.inflate(LayoutInflater.from(requireContext()))
         bottomSheetDialog.setContentView(bottomSheetBinding.root)
 
-        // Isi field jika dalam mode edit
+        val fasilitasList = mutableListOf<String>()
+
         existingDestinasi?.let { destinasi ->
+            fasilitasList.addAll(destinasi.fasilitas)
+            destinasi.fasilitas.forEach { fasilitas ->
+                addChipToGroup(fasilitas, bottomSheetBinding.chipGroupFasilitas, fasilitasList)
+            }
             bottomSheetBinding.inputNamaDestinasi.setText(destinasi.namaDestinasi)
             bottomSheetBinding.inputKategori.setText(destinasi.kategori)
             bottomSheetBinding.inputFoto.setText(destinasi.foto)
             bottomSheetBinding.inputDeskripsi.setText(destinasi.deskripsi)
-            bottomSheetBinding.inputHarga.setText(destinasi.harga.toString())
+            val formattedPrice = if (destinasi.harga % 1 == 0.0) {
+                destinasi.harga.toInt().toString()
+            } else {
+                DecimalFormat("#.##").format(destinasi.harga)
+            }
+            bottomSheetBinding.inputHarga.setText(formattedPrice)
             bottomSheetBinding.inputLokasi.setText(destinasi.lokasi)
-            bottomSheetBinding.inputFasilitas.setText(destinasi.fasilitas.joinToString(", "))
+        }
+
+        val fasilitasOptions = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir", "Restoran", "WiFi Gratis")
+        bottomSheetBinding.inputFasilitasDropdown.setOnClickListener { view ->
+            val popupMenu = PopupMenu(requireContext(), view)
+            fasilitasOptions.forEach { fasilitas ->
+                popupMenu.menu.add(fasilitas)
+            }
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                val selectedFasilitas = menuItem.title.toString()
+
+                if (!fasilitasList.contains(selectedFasilitas)) {
+                    fasilitasList.add(selectedFasilitas)
+                    addChipToGroup(selectedFasilitas, bottomSheetBinding.chipGroupFasilitas, fasilitasList)
+                }
+                true
+            }
+            popupMenu.show()
+        }
+
+        // Daftar kategori
+        val categories = listOf("Pantai", "Pegunungan", "Taman Hiburan", "Kawasan Kota")
+        bottomSheetBinding.inputKategori.setOnClickListener {
+            showCategoryPopup(it, categories) { selectedCategory ->
+                bottomSheetBinding.inputKategori.setText(selectedCategory)
+            }
         }
 
         bottomSheetBinding.submitButton.setOnClickListener {
@@ -79,30 +119,16 @@ class AdminDestinationFragment : Fragment() {
             val description = bottomSheetBinding.inputDeskripsi.text.toString().trim()
             val price = bottomSheetBinding.inputHarga.text.toString().trim()
             val location = bottomSheetBinding.inputLokasi.text.toString().trim()
-            val facilitiesInput = bottomSheetBinding.inputFasilitas.text.toString().trim()
 
             if (title.isEmpty() || subtitle.isEmpty() || description.isEmpty() || price.isEmpty() || location.isEmpty()) {
                 Snackbar.make(binding.root, "Semua field harus diisi!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val facilities = if (facilitiesInput.isNotEmpty()) {
-                facilitiesInput.split(",").map { it.trim() }
-            } else {
-                emptyList()
-            }
-
-            val finalPicAddress = if (picAddress.isEmpty()) {
-                "https://images.unsplash.com/photo-1516117172878-fd2c41f4a759?w=1024"
-            } else {
-                picAddress
-            }
-
             val destinasiRequest = DestinasiModel(
-                id = existingDestinasi?.id ?: "",
                 namaDestinasi = title,
-                fasilitas = facilities,
-                foto = finalPicAddress,
+                fasilitas = fasilitasList,
+                foto = picAddress,
                 harga = price.toDoubleOrNull() ?: 0.0,
                 lokasi = location,
                 kategori = subtitle,
@@ -116,34 +142,43 @@ class AdminDestinationFragment : Fragment() {
             }
             bottomSheetDialog.dismiss()
         }
+
         bottomSheetDialog.show()
+    }
+
+    private fun addChipToGroup(fasilitas: String, chipGroup: ChipGroup, fasilitasList: MutableList<String>) {
+        val chip = Chip(requireContext()).apply {
+            text = fasilitas
+            isCloseIconVisible = true
+            setOnCloseIconClickListener {
+                chipGroup.removeView(this)
+                fasilitasList.remove(fasilitas)
+            }
+        }
+        chipGroup.addView(chip)
+    }
+
+    private fun showCategoryPopup(view: View, categories: List<String>, onCategorySelected: (String) -> Unit) {
+        val popupMenu = PopupMenu(requireContext(), view)
+        categories.forEach { category ->
+            popupMenu.menu.add(category)
+        }
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            onCategorySelected(menuItem.title.toString())
+            true
+        }
+        popupMenu.show()
     }
 
     private fun getDestination() {
         destinasiViewModel.getDestinasi(requireContext())
         destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Empty -> {
-                    binding.emptyWisata.root.visibility = View.VISIBLE
-                    binding.loadingWisata.root.visibility = View.GONE
-                    binding.errorWisata.root.visibility = View.GONE
-                    binding.recyclerWisata.visibility = View.GONE
-                    binding.emptyWisata.emptyMessage.text = resource.message
-                }
-                is Resource.Error -> {
-                    binding.emptyWisata.root.visibility = View.GONE
-                    binding.loadingWisata.root.visibility = View.GONE
-                    binding.errorWisata.root.visibility = View.VISIBLE
-                    binding.recyclerWisata.visibility = View.GONE
-                    binding.errorWisata.errorMessage.text = resource.message
-                }
-                is Resource.Loading -> {
-                    binding.emptyWisata.root.visibility = View.GONE
-                    binding.loadingWisata.root.visibility = View.VISIBLE
-                }
+                is Resource.Empty -> showEmptyMessage(resource.message)
+                is Resource.Error -> showErrorMessage(resource.message)
+                is Resource.Loading -> showLoading()
                 is Resource.Success -> {
-                    binding.emptyWisata.root.visibility = View.GONE
-                    binding.loadingWisata.root.visibility = View.GONE
+                    hideAllMessages()
                     destinasiAdapter.updateData(resource.data!!)
                 }
             }
@@ -154,14 +189,9 @@ class AdminDestinationFragment : Fragment() {
         destinasiViewModel.addDestinasi(requireContext(), listOf(destinasi))
         destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal menambahkan destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                is Resource.Loading -> {}
-                is Resource.Empty -> {}
+                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
+                is Resource.Error -> Snackbar.make(binding.root, "Gagal menambahkan destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                else -> {}
             }
         }
     }
@@ -170,14 +200,9 @@ class AdminDestinationFragment : Fragment() {
         destinasiViewModel.updateDestinasi(requireContext(), destinasi)
         destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil diperbarui!", Snackbar.LENGTH_SHORT).show()
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal memperbarui destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                is Resource.Loading -> {}
-                is Resource.Empty -> {}
+                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil diperbarui!", Snackbar.LENGTH_SHORT).show()
+                is Resource.Error -> Snackbar.make(binding.root, "Gagal memperbarui destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                else -> {}
             }
         }
     }
@@ -190,16 +215,41 @@ class AdminDestinationFragment : Fragment() {
         destinasiViewModel.deleteDestinasi(requireContext(), destinasi.id!!)
         destinasiViewModel.deleteStatus.observe(viewLifecycleOwner) { resource ->
             when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                is Resource.Loading -> {}
-                is Resource.Empty -> {}
+                is Resource.Success -> Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
+                is Resource.Error -> Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                else -> {}
             }
         }
+    }
+
+    private fun showEmptyMessage(message: String?) {
+        binding.emptyWisata.root.visibility = View.VISIBLE
+        binding.loadingWisata.root.visibility = View.GONE
+        binding.errorWisata.root.visibility = View.GONE
+        binding.recyclerWisata.visibility = View.GONE
+        binding.emptyWisata.emptyMessage.text = message ?: "Tidak ada data."
+    }
+
+    private fun showErrorMessage(message: String?) {
+        binding.emptyWisata.root.visibility = View.GONE
+        binding.loadingWisata.root.visibility = View.GONE
+        binding.errorWisata.root.visibility = View.VISIBLE
+        binding.recyclerWisata.visibility = View.GONE
+        binding.errorWisata.errorMessage.text = message ?: "Terjadi kesalahan."
+    }
+
+    private fun showLoading() {
+        binding.emptyWisata.root.visibility = View.GONE
+        binding.loadingWisata.root.visibility = View.VISIBLE
+        binding.errorWisata.root.visibility = View.GONE
+        binding.recyclerWisata.visibility = View.GONE
+    }
+
+    private fun hideAllMessages() {
+        binding.emptyWisata.root.visibility = View.GONE
+        binding.loadingWisata.root.visibility = View.GONE
+        binding.errorWisata.root.visibility = View.GONE
+        binding.recyclerWisata.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

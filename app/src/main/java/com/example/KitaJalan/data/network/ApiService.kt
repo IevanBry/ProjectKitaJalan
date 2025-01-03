@@ -1,6 +1,5 @@
 package com.example.KitaJalan.data.network
 
-import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.model.DestinasiPostRequest
 import com.example.KitaJalan.data.model.DestinasiResponse
 import com.example.KitaJalan.data.model.WishlistPostRequest
