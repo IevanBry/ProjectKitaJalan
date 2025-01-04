@@ -4,4 +4,10 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
     </style>
+    <style name="SearchViewTheme" parent="">
+        <item name="android:maxWidth">10000dp</item>
+        <item name="android:textColorHint">@android:color/black</item>
+    </style>
 </resources>
+
+

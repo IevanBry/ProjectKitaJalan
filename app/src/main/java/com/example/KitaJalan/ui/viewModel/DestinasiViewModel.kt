@@ -17,6 +17,9 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
     private val _data = MutableLiveData<Resource<List<DestinasiModel>>>()
     val data: LiveData<Resource<List<DestinasiModel>>> = _data
 
+    private val _adminData = MutableLiveData<Resource<List<DestinasiModel>>>()
+    val adminData: LiveData<Resource<List<DestinasiModel>>> = _adminData
+
     private val _createStatus = MutableLiveData<Resource<Unit>>()
     val createStatus: LiveData<Resource<Unit>> = _createStatus
 
@@ -45,11 +48,33 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                             _data.postValue(Resource.Success(response))
                         }
                     } catch (e: Exception) {
-                        _data.postValue(Resource.Error("Unknown Error : ${e.message}"))
+                        _data.postValue(Resource.Error("Unknown Error: ${e.message}"))
                     }
                 }
             } else {
                 _data.postValue(Resource.Error("No Internet Connection"))
+            }
+        }
+    }
+
+    fun getDestinasiByAdmin(context: Context, adminId: String, userName:String, forceRefresh: Boolean = false) {
+        if (_adminData.value == null || forceRefresh) {
+            _adminData.value = Resource.Loading()
+            if (NetworkUtils.isNetworkAvailable(context)) {
+                viewModelScope.launch {
+                    try {
+                        val response = repository.fetchDestinationsByAdmin(adminId)
+                        if (response.isEmpty()) {
+                            _adminData.postValue(Resource.Empty("No Destinations Found for admin $userName"))
+                        } else {
+                            _adminData.postValue(Resource.Success(response))
+                        }
+                    } catch (e: Exception) {
+                        _adminData.postValue(Resource.Error("Unknown Error: ${e.message}"))
+                    }
+                }
+            } else {
+                _adminData.postValue(Resource.Error("No Internet Connection"))
             }
         }
     }
@@ -61,7 +86,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                     _createStatus.value = Resource.Loading()
                     repository.createDestination(destinasi)
                     _createStatus.postValue(Resource.Success(Unit))
-                    getDestinasi(context, forceRefresh = true)
+//                     getDestinasiByAdmin(context, adminId, forceRefresh = true)
                 } catch (e: Exception) {
                     _createStatus.postValue(Resource.Error("Unknown error: ${e.message}"))
                 }
@@ -78,7 +103,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                     _createStatus.value = Resource.Loading()
                     repository.updateDestination(destinasi)
                     _createStatus.postValue(Resource.Success(Unit))
-                    getDestinasi(context, forceRefresh = true)
+                    // getDestinasiByAdmin(context, adminId, forceRefresh = true)
                 } catch (e: Exception) {
                     _createStatus.postValue(Resource.Error("Error: ${e.message}"))
                 }
@@ -95,7 +120,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                     _deleteStatus.value = Resource.Loading()
                     repository.deleteDestination(destinasiId)
                     _deleteStatus.postValue(Resource.Success(Unit))
-                    getDestinasi(context, forceRefresh = true)
+                    // getDestinasiByAdmin(context, adminId, forceRefresh = true)
                 } catch (e: Exception) {
                     _deleteStatus.postValue(Resource.Error("Error: ${e.message}"))
                 }
@@ -145,7 +170,7 @@ class DestinasiViewModel(private val repository: DestinasiRepository) : ViewMode
                 try {
                     repository.removeFromWishlist(userId, destinasiId)
                     getWishlist(context, userId)
-                    _wishlistStatus.postValue(Resource.Success(null))
+                    _wishlistStatus.postValue(Resource.Success(Unit))
                 } catch (e: Exception) {
                     _wishlistStatus.postValue(Resource.Error("Failed to remove from wishlist: ${e.message}"))
                 }

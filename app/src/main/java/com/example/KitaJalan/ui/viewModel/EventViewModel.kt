@@ -10,6 +10,7 @@ import com.example.KitaJalan.data.repository.EventRepository
 import com.example.KitaJalan.utils.NetworkUtils
 import com.example.KitaJalan.utils.Resource
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class EventViewModel(private val repository: EventRepository) : ViewModel() {
 
@@ -36,6 +37,46 @@ class EventViewModel(private val repository: EventRepository) : ViewModel() {
                         } else {
                             cachedData = response
                             _data.postValue(Resource.Success(response))
+                        }
+                    } catch (e: Exception) {
+                        _data.postValue(Resource.Error("Unknown Error: ${e.message}"))
+                    }
+                }
+            } else {
+                _data.postValue(Resource.Error("No Internet Connection"))
+            }
+        }
+    }
+
+    fun getUpcomingAndOngoingEvents(context: Context, forceRefresh: Boolean = false) {
+        if (_data.value == null || forceRefresh) {
+            _data.value = Resource.Loading()
+            if (NetworkUtils.isNetworkAvailable(context)) {
+                viewModelScope.launch {
+                    try {
+                        val response = repository.fetchEvents()
+                        if (response.isEmpty()) {
+                            _data.postValue(Resource.Empty("No Events Found"))
+                        } else {
+                            val currentDate = System.currentTimeMillis()
+                            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+                            val filteredEvents = response.filter { event ->
+                                try {
+                                    val startDate = dateFormat.parse(event.tanggalMulai)?.time ?: 0L
+                                    val endDate = dateFormat.parse(event.tanggalSelesai)?.time ?: 0L
+                                    currentDate in startDate..endDate || currentDate <= startDate
+                                } catch (e: Exception) {
+                                    false
+                                }
+                            }
+
+                            if (filteredEvents.isEmpty()) {
+                                _data.postValue(Resource.Empty("No Upcoming or Ongoing Events Found"))
+                            } else {
+                                cachedData = filteredEvents
+                                _data.postValue(Resource.Success(filteredEvents))
+                            }
                         }
                     } catch (e: Exception) {
                         _data.postValue(Resource.Error("Unknown Error: ${e.message}"))

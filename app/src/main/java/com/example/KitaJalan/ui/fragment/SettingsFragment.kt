@@ -2,7 +2,6 @@ package com.example.KitaJalan.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,8 +67,7 @@ class SettingsFragment : Fragment() {
 
     private fun setupSettingsList() {
         val settingsItems = mutableListOf(
-            SettingItem("About Us", R.drawable.baseline_info_24),
-            SettingItem("Log Out", R.drawable.baseline_logout_24)
+            SettingItem("About Us", R.drawable.baseline_info_24)
         )
 
         val currentUser = firebaseAuth.currentUser
@@ -79,20 +77,38 @@ class SettingsFragment : Fragment() {
             settingsItems.add(SettingItem("Create User", R.drawable.baseline_person_24))
         }
 
+        settingsItems.add(SettingItem("Log Out", R.drawable.baseline_logout_24))
+
         val adapter = SettingsAdapter(requireContext(), R.layout.item_setting, settingsItems)
         binding.settingsListView.adapter = adapter
 
         binding.settingsListView.setOnItemClickListener { _, _, position, _ ->
-            when (position) {
-                0 -> replaceFragment(AboutUsFragment())
-                1 -> logout()
-                2 -> {
+            val selectedItem = settingsItems[position]
+            when (selectedItem.title) {
+                "About Us" -> replaceFragment(AboutUsFragment())
+                "Log Out" -> showLogoutConfirmationDialog() // Updated line
+                "Create User" -> {
                     if (email == "admin@gmail.com") {
                         showCreateUserDialog()
                     }
                 }
             }
         }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirm Logout")
+            .setMessage("Are you sure you want to log out?")
+            .setPositiveButton("Yes") { dialog, _ ->
+                dialog.dismiss()
+                logout()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 
     private fun showCreateUserDialog() {
@@ -150,5 +166,10 @@ class SettingsFragment : Fragment() {
         val transaction = parentFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container, fragment)
         transaction.commit()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

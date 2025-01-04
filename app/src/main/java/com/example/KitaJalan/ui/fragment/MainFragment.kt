@@ -13,12 +13,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.KitaJalan.R
 import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.repository.DestinasiRepository
+import com.example.KitaJalan.data.repository.EventRepository
 import com.example.KitaJalan.databinding.FragmentMainBinding
 import com.example.KitaJalan.ui.adapter.AutoSliderAdapter
 import com.example.KitaJalan.ui.adapter.CategoryAdapter
 import com.example.KitaJalan.ui.adapter.CategoryItem
+import com.example.KitaJalan.ui.adapter.EventAdapter
 import com.example.KitaJalan.ui.adapter.TrendsAdapter
 import com.example.KitaJalan.ui.viewModel.DestinasiViewModel
+import com.example.KitaJalan.ui.viewModel.EventViewModel
 import com.example.KitaJalan.utils.Resource
 import com.example.KitaJalan.utils.ViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -35,7 +38,14 @@ class MainFragment : Fragment() {
         }
     }
 
+    private val eventViewModel: EventViewModel by viewModels {
+        ViewModelFactory(EventViewModel::class.java) {
+            EventViewModel(EventRepository())
+        }
+    }
+
     private lateinit var trendsAdapter: TrendsAdapter
+    private lateinit var eventAdapter: EventAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,11 +54,12 @@ class MainFragment : Fragment() {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
 
         displayUsername()
+        setupAutoSlider()
         categoryAdapter()
         setupTrendsRecyclerView()
-        setupAutoSlider()
-//        addDestinasiData()
+        setupEventRecyclerView()
         observeDestinasiData()
+        observeEventData()
 
         return binding.root
     }
@@ -102,10 +113,27 @@ class MainFragment : Fragment() {
         }
     }
 
+    private fun setupEventRecyclerView() {
+        eventAdapter = EventAdapter(mutableListOf())
+        binding.recyclerEvent.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = eventAdapter
+        }
+    }
+
     private fun categoryAdapter() {
         destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
             when (resource) {
+                is Resource.Loading -> {
+                    binding.loadingCategory.root.visibility = View.VISIBLE
+                    binding.errorCategory.root.visibility = View.GONE
+                    binding.recyclerGrid.visibility = View.GONE
+                }
                 is Resource.Success -> {
+                    binding.loadingCategory.root.visibility = View.GONE
+                    binding.errorCategory.root.visibility = View.GONE
+                    binding.recyclerGrid.visibility = View.VISIBLE
+
                     val destinations = resource.data ?: emptyList()
                     val uniqueCategories = destinations.map { it.kategori }.distinct()
 
@@ -137,12 +165,21 @@ class MainFragment : Fragment() {
                     }
                 }
                 is Resource.Empty -> {
-                    Toast.makeText(requireContext(), "No destinations found", Toast.LENGTH_SHORT).show()
+                    binding.loadingCategory.root.visibility = View.GONE
+                    binding.errorCategory.root.visibility = View.GONE
+                    binding.recyclerGrid.visibility = View.GONE
+                    Toast.makeText(requireContext(), "No categories found", Toast.LENGTH_SHORT).show()
                 }
                 is Resource.Error -> {
+                    binding.loadingCategory.root.visibility = View.GONE
+                    binding.errorCategory.root.visibility = View.VISIBLE
+                    binding.recyclerGrid.visibility = View.GONE
+
+                    binding.errorCategory.errorMessage.text = resource.message
+                    binding.errorCategory.retryButton.setOnClickListener {
+                        destinasiViewModel.getDestinasi(requireContext(), forceRefresh = true)
+                    }
                     Toast.makeText(requireContext(), "Failed to load categories", Toast.LENGTH_SHORT).show()
-                }
-                else -> {
                 }
             }
         }
@@ -187,6 +224,50 @@ class MainFragment : Fragment() {
                         destinasiViewModel.getDestinasi(requireContext(), true)
                     }
                     Log.d("Data Destinasi", resource.message.toString())
+                }
+            }
+        }
+    }
+
+    private fun observeEventData() {
+        eventViewModel.getUpcomingAndOngoingEvents(requireContext())
+        eventViewModel.data.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    binding.loadingEvent.root.visibility = View.VISIBLE
+                    binding.errorEvent.root.visibility = View.GONE
+                    binding.emptyEvent.root.visibility = View.GONE
+                    binding.recyclerEvent.visibility = View.GONE
+                }
+                is Resource.Success -> {
+                    binding.loadingEvent.root.visibility = View.GONE
+                    binding.errorEvent.root.visibility = View.GONE
+
+                    if (resource.data.isNullOrEmpty()) {
+                        binding.emptyEvent.root.visibility = View.VISIBLE
+                        binding.recyclerEvent.visibility = View.GONE
+                    } else {
+                        binding.emptyEvent.root.visibility = View.GONE
+                        binding.recyclerEvent.visibility = View.VISIBLE
+                        eventAdapter.updateData(resource.data)
+                    }
+                }
+                is Resource.Error -> {
+                    binding.loadingEvent.root.visibility = View.GONE
+                    binding.emptyEvent.root.visibility = View.GONE
+                    binding.recyclerEvent.visibility = View.GONE
+                    binding.errorEvent.root.visibility = View.VISIBLE
+
+                    binding.errorEvent.errorMessage.text = resource.message
+                    binding.errorEvent.retryButton.setOnClickListener {
+                        eventViewModel.getUpcomingAndOngoingEvents(requireContext())
+                    }
+                }
+                is Resource.Empty -> {
+                    binding.loadingEvent.root.visibility = View.GONE
+                    binding.errorEvent.root.visibility = View.GONE
+                    binding.emptyEvent.root.visibility = View.VISIBLE
+                    binding.recyclerEvent.visibility = View.GONE
                 }
             }
         }

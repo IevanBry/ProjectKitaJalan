@@ -16,9 +16,10 @@
         android:layout_gravity="top"
         android:background="@drawable/search_view_bg"
         android:padding="8dp"
+        android:textColor="@color/black"
         app:queryHint="Search Here..."
         app:iconifiedByDefault="false"
-        app:searchHintIcon="@color/black" />
+        android:theme="@style/SearchViewTheme"/>
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroup"

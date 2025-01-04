@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -72,7 +74,9 @@ class CategoryFragment : Fragment() {
     }
 
     private fun setupSearchView() {
-        binding.searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        val searchView = binding.searchView
+
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
@@ -82,6 +86,17 @@ class CategoryFragment : Fragment() {
                 return true
             }
         })
+        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+
+        editText.setTextColor(android.graphics.Color.BLACK)
+
+        editText.setHintTextColor(android.graphics.Color.BLACK)
+
+        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
+        searchPlate.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+
+        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        searchIcon.setColorFilter(resources.getColor(R.color.black), android.graphics.PorterDuff.Mode.SRC_IN)
     }
 
     private fun searchDestinasi(query: String) {

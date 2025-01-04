@@ -11,6 +11,7 @@ import com.example.KitaJalan.R
 import com.example.KitaJalan.databinding.ActivityAdminBinding
 import com.example.KitaJalan.ui.fragment.AdminDestinationFragment
 import com.example.KitaJalan.ui.fragment.SettingsFragment
+import com.google.firebase.auth.FirebaseAuth
 
 class AdminActivity : AppCompatActivity() {
 
@@ -30,6 +31,13 @@ class AdminActivity : AppCompatActivity() {
             insets
         }
 
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        val email = currentUser?.email ?: ""
+
+        if (email != "admin@gmail.com") {
+            binding.bottomNavigationView.menu.findItem(R.id.event).isVisible = false
+        }
+
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> replaceFragment(AdminDestinationFragment())
@@ -40,7 +48,6 @@ class AdminActivity : AppCompatActivity() {
             }
             true
         }
-
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, AdminDestinationFragment())
             .commit()

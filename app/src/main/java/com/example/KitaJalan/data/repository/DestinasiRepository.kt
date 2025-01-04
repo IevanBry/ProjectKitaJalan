@@ -50,6 +50,33 @@ class DestinasiRepository {
         }
     }
 
+    suspend fun fetchDestinationsByAdmin(adminId: String): List<DestinasiModel> {
+        return try {
+            val snapshot = firestore.collection("destinasi")
+                .whereEqualTo("adminId", adminId)
+                .get().await()
+            val destinasiList = snapshot.documents.map { document ->
+                val destinasi = document.toObject(DestinasiModel::class.java)!!
+                destinasi.copy(id = document.id)
+            }
+
+            destinasiList.map { destinasi ->
+                val comments = fetchCommentsByDestinasiId(destinasi.id!!)
+                destinasi.copy(
+                    averageRating = if (comments.isNotEmpty()) {
+                        comments.map { it.rating }.average()
+                    } else {
+                        0.0
+                    },
+                    totalComments = comments.size
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     suspend fun createDestination(destinasi: List<DestinasiPostRequest>) {
         try {
             val currentUser = FirebaseAuth.getInstance().currentUser

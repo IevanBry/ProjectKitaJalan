@@ -4,10 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.KitaJalan.R
 import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.model.DestinasiPostRequest
 import com.example.KitaJalan.data.repository.DestinasiRepository
@@ -21,8 +25,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import java.text.DecimalFormat
-import java.util.UUID
+
 
 class AdminDestinationFragment : Fragment() {
 
@@ -38,15 +43,27 @@ class AdminDestinationFragment : Fragment() {
         }
     }
 
+    private lateinit var currentAdminId: String
+    private lateinit var currentAdminEmail: String
+    private var isSuperAdmin: Boolean = false
+
+    private var allDestinasiList: List<DestinasiModel> = emptyList()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentAdminDestinationBinding.inflate(inflater, container, false)
         setupFAB()
         setupRecyclerView()
-        getDestination()
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getAdminIdAndFetchDestinations()
+        setupObservers()
+        setupSearchView()
     }
 
     private fun setupRecyclerView() {
@@ -105,7 +122,6 @@ class AdminDestinationFragment : Fragment() {
             popupMenu.show()
         }
 
-        // Daftar kategori
         val categories = listOf("Pantai", "Pegunungan", "Taman Hiburan", "Kawasan Kota")
         bottomSheetBinding.inputKategori.setOnClickListener {
             showCategoryPopup(it, categories) { selectedCategory ->
@@ -128,14 +144,15 @@ class AdminDestinationFragment : Fragment() {
 
             val destinasiRequest = if (existingDestinasi != null) {
                 DestinasiPostRequest(
-                    id = existingDestinasi.id, // Pastikan `DestinasiPostRequest` memiliki field `id`
+                    id = existingDestinasi.id,
                     namaDestinasi = title,
                     fasilitas = fasilitasList,
                     foto = picAddress,
                     harga = price.toDoubleOrNull() ?: 0.0,
                     lokasi = location,
                     kategori = subtitle,
-                    deskripsi = description
+                    deskripsi = description,
+                    adminId = existingDestinasi.adminId
                 )
             } else {
                 DestinasiPostRequest(
@@ -145,7 +162,8 @@ class AdminDestinationFragment : Fragment() {
                     harga = price.toDoubleOrNull() ?: 0.0,
                     lokasi = location,
                     kategori = subtitle,
-                    deskripsi = description
+                    deskripsi = description,
+                    adminId = currentAdminId
                 )
             }
 
@@ -184,54 +202,149 @@ class AdminDestinationFragment : Fragment() {
         popupMenu.show()
     }
 
-    private fun getDestination() {
-        destinasiViewModel.getDestinasi(requireContext())
+    private fun getAdminIdAndFetchDestinations() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            Snackbar.make(binding.root, "User not logged in", Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        currentAdminId = currentUser.uid
+        currentAdminEmail = currentUser.email ?: ""
+
+        val userNameRaw = currentAdminEmail.substringBefore("@")
+        val userName = if (userNameRaw.isNotEmpty()) {
+            userNameRaw.replaceFirstChar { it.uppercase() }
+        } else {
+            "User"
+        }
+
+        isSuperAdmin = currentAdminEmail.equals("admin@gmail.com", ignoreCase = true)
+
+        if (isSuperAdmin) {
+            destinasiViewModel.getDestinasi(requireContext())
+        } else {
+            destinasiViewModel.getDestinasiByAdmin(requireContext(), currentAdminId, userName)
+        }
+    }
+
+    private fun setupObservers() {
         destinasiViewModel.data.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Empty -> showEmptyMessage(resource.message)
-                is Resource.Error -> showErrorMessage(resource.message)
-                is Resource.Loading -> showLoading()
-                is Resource.Success -> {
-                    hideAllMessages()
-                    destinasiAdapter.updateData(resource.data!!)
+            if (isSuperAdmin) {
+                when (resource) {
+                    is Resource.Empty -> showEmptyMessage(resource.message)
+                    is Resource.Error -> showErrorMessage(resource.message)
+                    is Resource.Loading -> showLoading()
+                    is Resource.Success -> {
+                        hideAllMessages()
+                        allDestinasiList = resource.data!!
+                        destinasiAdapter.updateData(allDestinasiList)
+                    }
                 }
             }
+        }
+
+        destinasiViewModel.adminData.observe(viewLifecycleOwner) { resource ->
+            if (!isSuperAdmin) {
+                when (resource) {
+                    is Resource.Empty -> showEmptyMessage(resource.message)
+                    is Resource.Error -> showErrorMessage(resource.message)
+                    is Resource.Loading -> showLoading()
+                    is Resource.Success -> {
+                        hideAllMessages()
+                        allDestinasiList = resource.data!!
+                        destinasiAdapter.updateData(allDestinasiList)
+                    }
+                }
+            }
+        }
+
+        destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    Snackbar.make(binding.root, "Operasi berhasil!", Snackbar.LENGTH_SHORT).show()
+                    refreshData()
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, "Operasi gagal: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                }
+                is Resource.Loading -> {
+                }
+                else -> {}
+            }
+        }
+
+        destinasiViewModel.deleteStatus.observe(viewLifecycleOwner) { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
+                    refreshData()
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun setupSearchView() {
+        val searchView = binding.searchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterDestinasi(newText)
+                return true
+            }
+        })
+
+        val editText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        editText.setTextColor(android.graphics.Color.BLACK)
+
+        editText.setHintTextColor(android.graphics.Color.BLACK)
+
+        val searchPlate = searchView.findViewById<View>(androidx.appcompat.R.id.search_plate)
+        searchPlate.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+
+        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        searchIcon.setColorFilter(getResources().getColor(R.color.black), android.graphics.PorterDuff.Mode.SRC_IN)
+    }
+
+    private fun filterDestinasi(query: String?) {
+        val filteredList = if (query.isNullOrEmpty()) {
+            allDestinasiList
+        } else {
+            allDestinasiList.filter { destinasi ->
+                destinasi.namaDestinasi.contains(query, ignoreCase = true) ||
+                        destinasi.kategori.contains(query, ignoreCase = true)
+            }
+        }
+        destinasiAdapter.updateData(filteredList)
+    }
+
+    private fun refreshData() {
+        if (isSuperAdmin) {
+            destinasiViewModel.getDestinasi(requireContext(), forceRefresh = true)
+        } else {
+            val userNameRaw = currentAdminEmail.substringBefore("@")
+            val userName = if (userNameRaw.isNotEmpty()) {
+                userNameRaw.replaceFirstChar { it.uppercase() }
+            } else {
+                "User"
+            }
+            destinasiViewModel.getDestinasiByAdmin(requireContext(), currentAdminId, userName, forceRefresh = true)
         }
     }
 
     private fun createNewDestination(destinasi: DestinasiPostRequest) {
         destinasiViewModel.addDestinasi(requireContext(), listOf(destinasi))
-        destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
-                    getDestination() // Refresh data setelah penambahan
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal menambahkan destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                else -> {}
-            }
-        }
     }
 
     private fun updateDestination(destinasi: DestinasiPostRequest) {
         destinasiViewModel.updateDestinasi(requireContext(), destinasi)
-        destinasiViewModel.createStatus.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil diperbarui!", Snackbar.LENGTH_SHORT).show()
-                    getDestination() // Refresh data setelah pembaruan
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal memperbarui destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                is Resource.Loading -> {
-
-                }
-                else -> {}
-            }
-        }
     }
 
     private fun onEditClick(destinasi: DestinasiModel) {
@@ -243,25 +356,14 @@ class AdminDestinationFragment : Fragment() {
             harga = destinasi.harga,
             lokasi = destinasi.lokasi,
             kategori = destinasi.kategori,
-            deskripsi = destinasi.deskripsi
+            deskripsi = destinasi.deskripsi,
+            adminId = destinasi.adminId
         )
         showBottomSheetDialog(destinasiPostRequest)
     }
 
     private fun onDeleteClick(destinasi: DestinasiModel) {
         destinasiViewModel.deleteDestinasi(requireContext(), destinasi.id!!)
-        destinasiViewModel.deleteStatus.observe(viewLifecycleOwner) { resource ->
-            when (resource) {
-                is Resource.Success -> {
-                    Snackbar.make(binding.root, "Destinasi berhasil dihapus!", Snackbar.LENGTH_SHORT).show()
-                    getDestination() // Refresh data setelah penghapusan
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, "Gagal menghapus destinasi: ${resource.message}", Snackbar.LENGTH_LONG).show()
-                }
-                else -> {}
-            }
-        }
     }
 
     private fun showEmptyMessage(message: String?) {

@@ -1,14 +1,13 @@
 package com.example.KitaJalan.ui.fragment
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.KitaJalan.R
 import com.example.KitaJalan.data.model.EventModel
 import com.example.KitaJalan.data.repository.EventRepository
 import com.example.KitaJalan.databinding.BottomAddEventSheetLayoutBinding
@@ -72,6 +71,20 @@ class AdminEventFragment : Fragment() {
             bottomSheetBinding.inputUrlGambar.setText(event.gambarUrl)
         }
 
+        // Listener untuk tanggal mulai
+        bottomSheetBinding.inputTanggalMulai.setOnClickListener {
+            showDatePickerDialog { selectedDate ->
+                bottomSheetBinding.inputTanggalMulai.setText(selectedDate)
+            }
+        }
+
+        // Listener untuk tanggal selesai
+        bottomSheetBinding.inputTanggalSelesai.setOnClickListener {
+            showDatePickerDialog { selectedDate ->
+                bottomSheetBinding.inputTanggalSelesai.setText(selectedDate)
+            }
+        }
+
         bottomSheetBinding.btnSimpanEvent.setOnClickListener {
             val title = bottomSheetBinding.inputJudulEvent.text.toString().trim()
             val description = bottomSheetBinding.inputDeskripsiEvent.text.toString().trim()
@@ -81,10 +94,9 @@ class AdminEventFragment : Fragment() {
             val imageUrl = bottomSheetBinding.inputUrlGambar.text.toString().trim()
 
             if (title.isEmpty() || description.isEmpty() || startDate.isEmpty() ||
-                endDate.isEmpty() || googleMapsUrl.isEmpty() || imageUrl.isEmpty()) {
-                binding.root.context?.let {
-                    Snackbar.make(binding.root, "Semua field harus diisi!", Snackbar.LENGTH_SHORT).show()
-                }
+                endDate.isEmpty() || googleMapsUrl.isEmpty() || imageUrl.isEmpty()
+            ) {
+                Snackbar.make(binding.root, "Semua field harus diisi!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -107,6 +119,23 @@ class AdminEventFragment : Fragment() {
         }
 
         bottomSheetDialog.show()
+    }
+
+    private fun showDatePickerDialog(onDateSelected: (String) -> Unit) {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, selectedYear, selectedMonth, selectedDay ->
+                val formattedDate = String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay)
+                onDateSelected(formattedDate)
+            },
+            year, month, day
+        )
+        datePickerDialog.show()
     }
 
     private fun getEvents() {
