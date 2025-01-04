@@ -91,6 +91,16 @@
                 android:text="Fasilitas: -"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
+
+            <!-- No HP -->
+            <TextView
+                android:id="@+id/noHp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins"
+                android:text="No. HP: "
+                android:textColor="@color/black"
+                android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Action Buttons -->

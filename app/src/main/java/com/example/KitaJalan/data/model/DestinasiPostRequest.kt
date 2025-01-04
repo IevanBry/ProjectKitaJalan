@@ -7,6 +7,7 @@ data class DestinasiPostRequest(
     val fasilitas: List<String> = emptyList(),
     val foto: String = "",
     val harga: Double = 0.0,
+    val noHp: String = "",
     val lokasi: String = "",
     val kategori: String = "",
     val deskripsi: String = "",

@@ -63,6 +63,7 @@ class DestinasiAdminAdapter(
                 location.text = "Lokasi: ${destinasi.lokasi}"
                 description.text = "Deskripsi: ${destinasi.deskripsi}"
                 facilities.text = "Fasilitas: ${destinasi.fasilitas.joinToString(", ")}"
+                noHp.text = "No. HP: ${destinasi.noHp}" // Tambahkan ini untuk menampilkan nomor HP
 
                 Picasso.get()
                     .load(destinasi.foto)

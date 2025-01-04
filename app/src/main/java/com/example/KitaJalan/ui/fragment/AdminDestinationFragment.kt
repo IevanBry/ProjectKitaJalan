@@ -1,6 +1,7 @@
 package com.example.KitaJalan.ui.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +65,7 @@ class AdminDestinationFragment : Fragment() {
         getAdminIdAndFetchDestinations()
         setupObservers()
         setupSearchView()
+//        insertStaticDestinationsToFirebase()
     }
 
     private fun setupRecyclerView() {
@@ -102,6 +104,7 @@ class AdminDestinationFragment : Fragment() {
             }
             bottomSheetBinding.inputHarga.setText(formattedPrice)
             bottomSheetBinding.inputLokasi.setText(destinasi.lokasi)
+            bottomSheetBinding.inputNoHp.setText(destinasi.noHp)
         }
 
         val fasilitasOptions = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir", "Restoran", "WiFi Gratis")
@@ -122,7 +125,7 @@ class AdminDestinationFragment : Fragment() {
             popupMenu.show()
         }
 
-        val categories = listOf("Pantai", "Pegunungan", "Taman Hiburan", "Kawasan Kota")
+        val categories = listOf("Pantai", "Pegunungan", "Taman Hiburan", "Wisata Alam")
         bottomSheetBinding.inputKategori.setOnClickListener {
             showCategoryPopup(it, categories) { selectedCategory ->
                 bottomSheetBinding.inputKategori.setText(selectedCategory)
@@ -136,8 +139,9 @@ class AdminDestinationFragment : Fragment() {
             val description = bottomSheetBinding.inputDeskripsi.text.toString().trim()
             val price = bottomSheetBinding.inputHarga.text.toString().trim()
             val location = bottomSheetBinding.inputLokasi.text.toString().trim()
+            val noHp = bottomSheetBinding.inputNoHp.text.toString().trim()
 
-            if (title.isEmpty() || subtitle.isEmpty() || description.isEmpty() || price.isEmpty() || location.isEmpty()) {
+            if (title.isEmpty() || subtitle.isEmpty() || description.isEmpty() || price.isEmpty() || location.isEmpty() || noHp.isEmpty()) {
                 Snackbar.make(binding.root, "Semua field harus diisi!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -150,6 +154,7 @@ class AdminDestinationFragment : Fragment() {
                     foto = picAddress,
                     harga = price.toDoubleOrNull() ?: 0.0,
                     lokasi = location,
+                    noHp = noHp,
                     kategori = subtitle,
                     deskripsi = description,
                     adminId = existingDestinasi.adminId
@@ -161,6 +166,7 @@ class AdminDestinationFragment : Fragment() {
                     foto = picAddress,
                     harga = price.toDoubleOrNull() ?: 0.0,
                     lokasi = location,
+                    noHp = noHp,
                     kategori = subtitle,
                     deskripsi = description,
                     adminId = currentAdminId
@@ -355,6 +361,7 @@ class AdminDestinationFragment : Fragment() {
             foto = destinasi.foto,
             harga = destinasi.harga,
             lokasi = destinasi.lokasi,
+            noHp = destinasi.noHp,
             kategori = destinasi.kategori,
             deskripsi = destinasi.deskripsi,
             adminId = destinasi.adminId
@@ -394,6 +401,61 @@ class AdminDestinationFragment : Fragment() {
         binding.loadingWisata.root.visibility = View.GONE
         binding.errorWisata.root.visibility = View.GONE
         binding.recyclerWisata.visibility = View.VISIBLE
+    }
+
+    private fun insertStaticDestinationsToFirebase() {
+        val staticDestinations = listOf(
+            DestinasiPostRequest(
+                namaDestinasi = "Alam Mayang",
+                fasilitas = listOf("Area Parkir", "Restoran", "WiFi Gratis"),
+                foto = "https://ik.imagekit.io/pyg91hrnd/Taman%20Rekreasi%20Alam%20Mayang.png?updatedAt=1736001054565",
+                harga = 15000.0,
+                lokasi = "Jl. H. Imam Munandar",
+                kategori = "Taman Hiburan",
+                deskripsi = "Tempat rekreasi keluarga dengan berbagai wahana permainan.",
+                adminId = currentAdminId,
+                noHp = "081234567890"
+            ),
+            DestinasiPostRequest(
+                namaDestinasi = "Hutan Kota Pekanbaru",
+                fasilitas = listOf("Trek Jalan Kaki", "Area Parkir"),
+                foto = "https://example.com/hutan_kota.jpg",
+                harga = 0.0,
+                lokasi = "Jl. Jenderal Sudirman",
+                kategori = "Wisata Alam",
+                deskripsi = "Hutan buatan di tengah kota untuk aktivitas rekreasi.",
+                adminId = currentAdminId,
+                noHp = "081234567892"
+            ),
+            DestinasiPostRequest(
+                namaDestinasi = "Taman Wisata Alam Kasang Kulim",
+                fasilitas = listOf("Kolam Renang", "Kamar Mandi"),
+                foto = "https://example.com/kasang_kulim.jpg",
+                harga = 10000.0,
+                lokasi = "Jl. HR Soebrantas",
+                kategori = "Wisata Alam",
+                deskripsi = "Taman rekreasi alam dengan fasilitas lengkap untuk keluarga.",
+                adminId = currentAdminId,
+                noHp = "081234567893"
+            ),
+            DestinasiPostRequest(
+                namaDestinasi = "Riau Fantasi",
+                fasilitas = listOf("Kolam Renang", "Restoran", "Area Bermain Anak"),
+                foto = "https://example.com/riau_fantasi.jpg",
+                harga = 50000.0,
+                lokasi = "Jl. Labersa",
+                kategori = "Taman Hiburan",
+                deskripsi = "Wahana bermain air terbesar di Pekanbaru.",
+                adminId = currentAdminId,
+                noHp = "081234567894"
+            )
+        )
+
+        staticDestinations.forEach { destinasi ->
+            destinasiViewModel.addDestinasi(requireContext(), listOf(destinasi))
+        }
+
+        Snackbar.make(binding.root, "Data destinasi statis berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

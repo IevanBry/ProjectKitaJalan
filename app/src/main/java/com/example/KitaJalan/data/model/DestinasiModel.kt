@@ -1,12 +1,6 @@
 package com.example.KitaJalan.data.model
 
-data class DestinasiResponse(
-    val cursor: String,
-    val items: List<DestinasiModel>,
-    val next_page: String,
-)
-
-data class DestinasiModel (
+data class DestinasiModel(
     val id: String = "",
     val adminId: String = "",
     val namaDestinasi: String = "",
@@ -14,6 +8,7 @@ data class DestinasiModel (
     val foto: String = "",
     val harga: Double = 0.0,
     val lokasi: String = "",
+    val noHp: String = "",
     val kategori: String = "",
     val deskripsi: String = "",
     val averageRating: Double = 0.0,

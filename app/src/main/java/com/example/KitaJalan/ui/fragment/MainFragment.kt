@@ -98,6 +98,7 @@ class MainFragment : Fragment() {
                 putString("lokasi", selectedItem.lokasi)
                 putDouble("harga", selectedItem.harga)
                 putString("foto", selectedItem.foto)
+                putString("noHp", selectedItem.noHp)
                 putStringArrayList("fasilitas", ArrayList(selectedItem.fasilitas))
             }
             detailFragment.arguments = bundle
@@ -272,41 +273,6 @@ class MainFragment : Fragment() {
             }
         }
     }
-
-    private fun addDestinasiData() {
-        val destinasiList = listOf(
-            DestinasiModel(
-                namaDestinasi = "Taman Mini Indonesia Indah",
-                fasilitas = listOf("Kamar Mandi", "Tempat Parkir", "Kantin"),
-                foto = "https://example.com/foto1.jpg",
-                harga = 50000.0,
-                lokasi = "Jakarta Timur, Indonesia",
-                kategori = "Wisata Alam",
-                deskripsi = "Taman Mini Indonesia Indah adalah taman wisata budaya dengan miniatur Indonesia.",
-            ),
-            DestinasiModel(
-                namaDestinasi = "Ancol Dreamland",
-                fasilitas = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir"),
-                foto = "https://example.com/foto2.jpg",
-                harga = 150000.0,
-                lokasi = "Jakarta Utara, Indonesia",
-                kategori = "Wisata Hiburan",
-                deskripsi = "Ancol Dreamland adalah kawasan wisata terbesar di Jakarta dengan berbagai wahana.",
-            ),
-            DestinasiModel(
-                namaDestinasi = "Kawah Putih",
-                fasilitas = listOf("Parkir", "Toilet", "Warung Makan"),
-                foto = "https://example.com/foto3.jpg",
-                harga = 20000.0,
-                lokasi = "Bandung, Indonesia",
-                kategori = "Wisata Alam",
-                deskripsi = "Kawah Putih adalah danau kawah vulkanik yang indah dengan air berwarna putih kehijauan.",
-            )
-
-        )
-//        destinasiViewModel.addDestinasi(requireContext(), destinasiList)
-    }
-
 
     @Override
     override fun onSaveInstanceState(outState: Bundle) {

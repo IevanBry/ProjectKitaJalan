@@ -211,6 +211,7 @@ class SearchFragment : Fragment() {
             putDouble("harga", destinasi.harga)
             putString("foto", destinasi.foto)
             putStringArrayList("fasilitas", ArrayList(destinasi.fasilitas))
+            putString("noHp", destinasi.noHp)
             putDouble("averageRating", destinasi.averageRating)
         }
         detailFragment.arguments = bundle
