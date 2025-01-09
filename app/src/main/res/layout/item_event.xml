@@ -17,7 +17,8 @@
         <ImageView
             android:id="@+id/imageEvent"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="180dp"
+            android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:src="@drawable/sample_event" />
 

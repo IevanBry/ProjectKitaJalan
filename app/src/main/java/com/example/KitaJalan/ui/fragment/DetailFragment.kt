@@ -59,7 +59,7 @@ class DetailFragment : Fragment() {
 
         val fragments = listOf(
             FragmentDetailView().apply { arguments = this@DetailFragment.arguments },
-            MapFragment().apply { arguments = this@DetailFragment.arguments },
+//            MapFragment().apply { arguments = this@DetailFragment.arguments },
             CommentFragment().apply { arguments = this@DetailFragment.arguments }
         )
 
@@ -73,8 +73,8 @@ class DetailFragment : Fragment() {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> "Detail"
-                1 -> "Map"
-                2 -> "Komentar"
+//                1 -> "Map"
+                1 -> "Komentar"
                 else -> throw IllegalStateException("Unexpected position: $position")
             }
         }.attach()

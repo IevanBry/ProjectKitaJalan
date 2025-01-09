@@ -11,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.KitaJalan.R
-import com.example.KitaJalan.data.model.DestinasiModel
 import com.example.KitaJalan.data.repository.DestinasiRepository
 import com.example.KitaJalan.data.repository.EventRepository
 import com.example.KitaJalan.databinding.FragmentMainBinding
@@ -140,8 +139,10 @@ class MainFragment : Fragment() {
 
                     val categoryList = uniqueCategories.map { category ->
                         val iconResId = when (category) {
-                            "Wisata Alam" -> R.drawable.cat1
-                            "Wisata Hiburan" -> R.drawable.cat2
+                            "Wisata Alam" -> R.drawable.cat2
+                            "Taman Hiburan" -> R.drawable.park
+                            "Hotel" -> R.drawable.hotel
+                            "Pantai" -> R.drawable.cat1
                             else -> R.drawable.logo
                         }
                         CategoryItem(category, iconResId)
@@ -212,7 +213,10 @@ class MainFragment : Fragment() {
                     binding.destinasiRecycler.visibility = View.VISIBLE
                     Log.d("Data Destinasi", "Data berhasil didapatkan")
                     resource.data?.let {
-                        trendsAdapter.updateData(it)
+                        val top5Destinasi = it.sortedByDescending { destinasi ->
+                            destinasi.totalComments
+                        }.take(5)
+                        trendsAdapter.updateData(top5Destinasi)
                     }
                 }
                 is Resource.Error -> {

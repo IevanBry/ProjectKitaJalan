@@ -66,8 +66,16 @@ class RegisterFragment : Fragment() {
                 Toast.makeText(requireContext(), "Email harus diisi!", Toast.LENGTH_SHORT).show()
                 false
             }
+            !email.endsWith("@gmail.com") -> {
+                Toast.makeText(requireContext(), "Email harus menggunakan domain @gmail.com!", Toast.LENGTH_SHORT).show()
+                false
+            }
             password.isEmpty() -> {
                 Toast.makeText(requireContext(), "Password harus diisi!", Toast.LENGTH_SHORT).show()
+                false
+            }
+            password.length < 6 -> {
+                Toast.makeText(requireContext(), "Password harus terdiri dari minimal 6  karakter!", Toast.LENGTH_SHORT).show()
                 false
             }
             confirmPassword.isEmpty() -> {

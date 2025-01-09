@@ -41,26 +41,40 @@ class FragmentDetailView : Fragment() {
         binding.textView4.text = args?.getString("namaDestinasi")
         binding.descriptionText.text = args?.getString("deskripsi")
         binding.locationText.text = args?.getString("lokasi")
-        setupPrice(args?.getDouble("harga"))
+        val harga = args?.getDouble("harga", 0.0) ?: 0.0
+        setupPrice(harga)
         setupRating(args?.getDouble("averageRating", 0.0) ?: 0.0)
 
-        binding.bookBtn.setOnClickListener {
-            val noHp = args?.getString("noHp")
-            if (!noHp.isNullOrEmpty()) {
-                redirectToWhatsApp(noHp)
-            } else {
-                Snackbar.make(binding.root, "Nomor HP tidak tersedia", Snackbar.LENGTH_SHORT).show()
+        if (harga == 0.0) {
+            binding.bookBtn.visibility = View.GONE
+            binding.ticketCountText.visibility = View.GONE
+            binding.plusButton.visibility = View.GONE
+            binding.minusButton.visibility = View.GONE
+        } else {
+            binding.bookBtn.visibility = View.VISIBLE
+            binding.ticketCountText.visibility = View.VISIBLE
+            binding.plusButton.visibility = View.VISIBLE
+            binding.minusButton.visibility = View.VISIBLE
+
+            binding.bookBtn.setOnClickListener {
+                val noHp = args?.getString("noHp")
+                if (!noHp.isNullOrEmpty()) {
+                    redirectToWhatsApp(noHp)
+                } else {
+                    Snackbar.make(binding.root, "Nomor HP tidak tersedia", Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     private fun setupPrice(harga: Double?) {
-        binding.priceText.text = if (harga != null) {
+        binding.priceText.text = if (harga != null && harga > 0) {
             formatRupiah(harga)
         } else {
-            "Harga tidak tersedia"
+            "Gratis"
         }
     }
+
 
     private fun formatRupiah(amount: Double): String {
         val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
@@ -92,9 +106,13 @@ class FragmentDetailView : Fragment() {
 
     private fun getIconForFacility(name: String): Int {
         return when (name.lowercase()) {
-            "wifi" -> R.drawable.wifi
+            "wifi gratis", "wifi" -> R.drawable.wifi
             "toilet" -> R.drawable.toilet
             "gym" -> R.drawable.gym
+            "restoran" -> R.drawable.restoran
+            "kolam renang" -> R.drawable.swimming
+            "area parkir" -> R.drawable.parking_area
+            "kamar mandi" -> R.drawable.toilet
             else -> R.drawable.gym
         }
     }

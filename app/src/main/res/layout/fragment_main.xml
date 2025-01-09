@@ -227,6 +227,5 @@
             android:layout_height="wrap_content"
             android:padding="8dp"
             android:scrollbars="horizontal" />
-
     </LinearLayout>
 </ScrollView>

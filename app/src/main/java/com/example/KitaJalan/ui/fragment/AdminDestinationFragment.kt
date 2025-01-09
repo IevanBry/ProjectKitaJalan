@@ -70,6 +70,7 @@ class AdminDestinationFragment : Fragment() {
 
     private fun setupRecyclerView() {
         destinasiAdapter = DestinasiAdminAdapter(emptyList(), ::onEditClick, ::onDeleteClick)
+//        val gridLayoutManager = GridLayoutManager(context, 2) // 2 adalah jumlah kolom dalam grid
         binding.recyclerWisata.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         binding.recyclerWisata.adapter = destinasiAdapter
     }
@@ -107,7 +108,7 @@ class AdminDestinationFragment : Fragment() {
             bottomSheetBinding.inputNoHp.setText(destinasi.noHp)
         }
 
-        val fasilitasOptions = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir", "Restoran", "WiFi Gratis")
+        val fasilitasOptions = listOf("Kolam Renang", "Kamar Mandi", "Area Parkir", "Restoran", "WiFi Gratis", "Gym")
         bottomSheetBinding.inputFasilitasDropdown.setOnClickListener { view ->
             val popupMenu = PopupMenu(requireContext(), view)
             fasilitasOptions.forEach { fasilitas ->
@@ -125,7 +126,7 @@ class AdminDestinationFragment : Fragment() {
             popupMenu.show()
         }
 
-        val categories = listOf("Pantai", "Pegunungan", "Taman Hiburan", "Wisata Alam")
+        val categories = listOf("Pantai", "Hotel", "Taman Hiburan", "Wisata Alam")
         bottomSheetBinding.inputKategori.setOnClickListener {
             showCategoryPopup(it, categories) { selectedCategory ->
                 bottomSheetBinding.inputKategori.setText(selectedCategory)
@@ -406,55 +407,21 @@ class AdminDestinationFragment : Fragment() {
     private fun insertStaticDestinationsToFirebase() {
         val staticDestinations = listOf(
             DestinasiPostRequest(
-                namaDestinasi = "Alam Mayang",
+                namaDestinasi = "Pantai Cinta Pekanbaru",
                 fasilitas = listOf("Area Parkir", "Restoran", "WiFi Gratis"),
-                foto = "https://ik.imagekit.io/pyg91hrnd/Taman%20Rekreasi%20Alam%20Mayang.png?updatedAt=1736001054565",
+                foto = "https://ik.imagekit.io/pyg91hrnd/Pantai%20Cinta%20Pekanbaru.jpeg?updatedAt=1736426959053",
                 harga = 15000.0,
-                lokasi = "Jl. H. Imam Munandar",
-                kategori = "Taman Hiburan",
-                deskripsi = "Tempat rekreasi keluarga dengan berbagai wahana permainan.",
-                adminId = currentAdminId,
-                noHp = "081234567890"
-            ),
-            DestinasiPostRequest(
-                namaDestinasi = "Hutan Kota Pekanbaru",
-                fasilitas = listOf("Trek Jalan Kaki", "Area Parkir"),
-                foto = "https://example.com/hutan_kota.jpg",
-                harga = 0.0,
-                lokasi = "Jl. Jenderal Sudirman",
+                lokasi = "Jl. Raya Pasir Putih, Pekanbaru",
                 kategori = "Wisata Alam",
-                deskripsi = "Hutan buatan di tengah kota untuk aktivitas rekreasi.",
+                deskripsi = "Pantai buatan yang menawarkan suasana romantis dan pemandangan yang menenangkan di pinggir kota Pekanbaru.",
                 adminId = currentAdminId,
-                noHp = "081234567892"
-            ),
-            DestinasiPostRequest(
-                namaDestinasi = "Taman Wisata Alam Kasang Kulim",
-                fasilitas = listOf("Kolam Renang", "Kamar Mandi"),
-                foto = "https://example.com/kasang_kulim.jpg",
-                harga = 10000.0,
-                lokasi = "Jl. HR Soebrantas",
-                kategori = "Wisata Alam",
-                deskripsi = "Taman rekreasi alam dengan fasilitas lengkap untuk keluarga.",
-                adminId = currentAdminId,
-                noHp = "081234567893"
-            ),
-            DestinasiPostRequest(
-                namaDestinasi = "Riau Fantasi",
-                fasilitas = listOf("Kolam Renang", "Restoran", "Area Bermain Anak"),
-                foto = "https://example.com/riau_fantasi.jpg",
-                harga = 50000.0,
-                lokasi = "Jl. Labersa",
-                kategori = "Taman Hiburan",
-                deskripsi = "Wahana bermain air terbesar di Pekanbaru.",
-                adminId = currentAdminId,
-                noHp = "081234567894"
+                noHp = "081234567896"
             )
         )
 
         staticDestinations.forEach { destinasi ->
             destinasiViewModel.addDestinasi(requireContext(), listOf(destinasi))
         }
-
         Snackbar.make(binding.root, "Data destinasi statis berhasil ditambahkan!", Snackbar.LENGTH_SHORT).show()
     }
 
